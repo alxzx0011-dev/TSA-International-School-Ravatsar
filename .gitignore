@@ -1,0 +1,9 @@
+school/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.log
+.env
+.DS_Store

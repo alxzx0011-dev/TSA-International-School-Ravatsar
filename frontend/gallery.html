@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Explore school activities, classrooms, sports and events at Bright Future International School.">
+
+    <title>Gallery | Bright Future International School</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="script.js" defer></script>
+
+    <style>
+        .gallery-intro {
+            text-align: center;
+            max-width: 750px;
+            margin: auto;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 24px;
+            margin-top: 35px;
+        }
+
+        .gallery-card {
+            overflow: hidden;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.14);
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 230px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .gallery-card-content {
+            padding: 20px;
+        }
+
+        .gallery-card-content h3 {
+            margin: 0 0 10px;
+        }
+
+        .gallery-card-content p {
+            margin: 0;
+            line-height: 1.7;
+        }
+
+        .gallery-note {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 850px) {
+            .gallery-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 550px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery-card img {
+                height: 240px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">B</span>
+            <span>
+                Bright Future
+                <small>INTERNATIONAL SCHOOL</small>
+            </span>
+        </a>
+
+        <button class="menu-toggle"
+                id="menuToggle"
+                aria-label="Toggle navigation"
+                aria-controls="navLinks"
+                aria-expanded="false">
+            ☰
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="academics.html">Academics</a>
+            <a href="admissions.html">Admissions</a>
+            <a href="gallery.html" aria-current="page">Gallery</a>
+            <a href="contact.html">Contact</a>
+            <a href="portal.html" class="portal-link">Student Login</a>
+            <a href="admissions.html" class="nav-button">Apply Now</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-content">
+                <span class="eyebrow">LIFE AT OUR SCHOOL</span>
+
+                <h1>
+                    Moments That<br>
+                    <span>Make Us Shine.</span>
+                </h1>
+
+                <p>
+                    Explore learning, creativity, teamwork
+                    and memorable moments from school life.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#gallery" class="primary-button">
+                        Explore Gallery ↓
+                    </a>
+                    <a href="about.html" class="secondary-button">
+                        About Our School
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Introduction -->
+        <section class="section welcome gallery-intro">
+            <span class="eyebrow">OUR SCHOOL IN PICTURES</span>
+
+            <h2>Learning Beyond Books</h2>
+
+            <p>
+                From classroom activities to sports and creative
+                projects, school life gives students opportunities
+                to explore their interests and learn together.
+            </p>
+        </section>
+
+        <!-- Gallery Grid -->
+        <section class="section" id="gallery">
+
+            <div class="gallery-filters" id="galleryFilters"></div>
+
+            <div class="gallery-grid" id="galleryGrid">
+
+                <article class="gallery-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80"
+                        alt="Students learning together in a classroom"
+                        loading="lazy">
+
+                    <div class="gallery-card-content">
+                        <h3>Classroom Learning</h3>
+                        <p>Building knowledge through lessons and teamwork.</p>
+                    </div>
+                </article>
+
+                <article class="gallery-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=900&q=80"
+                        alt="A bright classroom learning environment"
+                        loading="lazy">
+
+                    <div class="gallery-card-content">
+                        <h3>Our Classrooms</h3>
+                        <p>Spaces for curiosity, discovery and learning.</p>
+                    </div>
+                </article>
+
+                <article class="gallery-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=900&q=80"
+                        alt="Students taking part in a group activity"
+                        loading="lazy">
+
+                    <div class="gallery-card-content">
+                        <h3>Teamwork</h3>
+                        <p>Learning to communicate and solve problems together.</p>
+                    </div>
+                </article>
+
+                <article class="gallery-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=900&q=80"
+                        alt="Teacher supporting students during a lesson"
+                        loading="lazy">
+
+                    <div class="gallery-card-content">
+                        <h3>Teacher Guidance</h3>
+                        <p>Supporting every student's learning journey.</p>
+                    </div>
+                </article>
+
+                <article class="gallery-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=900&q=80"
+                        alt="Athletes running on a sports track"
+                        loading="lazy">
+
+                    <div class="gallery-card-content">
+                        <h3>Sports & Fitness</h3>
+                        <p>Developing confidence, discipline and teamwork.</p>
+                    </div>
+                </article>
+
+                <article class="gallery-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=900&q=80"
+                        alt="Art supplies used for creative activities"
+                        loading="lazy">
+
+                    <div class="gallery-card-content">
+                        <h3>Art & Creativity</h3>
+                        <p>Giving imagination a place to grow.</p>
+                    </div>
+                </article>
+
+            </div>
+
+            <p class="gallery-note">
+                These are sample online photographs. Replace them
+                with your school's own approved photographs before
+                publishing the website.
+            </p>
+
+        </section>
+
+        <!-- Call to Action -->
+        <section class="admission section">
+            <span class="eyebrow">BE PART OF OUR STORY</span>
+
+            <h2>Make Your Own Memories</h2>
+
+            <p>
+                Discover our academic programs and learn how
+                to begin your journey with our school.
+            </p>
+
+            <a href="admissions.html" class="primary-button">
+                Explore Admissions →
+            </a>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+        <footer id="contact" class="site-footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="index.html" class="footer-logo">
+                    <span class="logo-icon">B</span>
+                    <span>Bright Future<small>INTERNATIONAL SCHOOL</small></span>
+                </a>
+                <p class="footer-tagline" data-setting="tagline">Quality Education &middot; Bright Futures</p>
+                <p class="footer-about">A nurturing community where curiosity, confidence and character grow together.</p>
+                <div class="footer-social" id="socialLinks"></div>
+            </div>
+
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="academics.html">Academics</a>
+                <a href="admissions.html">Admissions</a>
+                <a href="gallery.html">Gallery</a>
+                <a href="contact.html">Contact</a>
+                <a href="portal.html">Student Portal</a>
+            </div>
+
+            <div class="footer-col">
+                <h3>Academics</h3>
+                <a href="academics.html#programs">Programs</a>
+                <a href="academics.html">Core Subjects</a>
+                <a href="academics.html">Learning Approach</a>
+                <a href="admissions.html">Admissions</a>
+                <a href="gallery.html">Campus Life</a>
+            </div>
+
+            <div class="footer-col footer-contact">
+                <h3>Get in Touch</h3>
+                <div id="footerContact"></div>
+                <a href="admissions.html" class="footer-cta">Apply for Admission &rarr;</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; <span id="year"></span> Bright Future International School. All rights reserved.</p>
+            <p><a href="index.html">Home</a> &middot; <a href="about.html">About</a> &middot; <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>

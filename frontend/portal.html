@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Student portal — attendance, fees, results and notices.">
+
+    <title>Student Portal | Bright Future International School</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="portal.js" defer></script>
+</head>
+<body class="portal-page">
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">B</span>
+            <span>
+                Bright Future
+                <small>STUDENT PORTAL</small>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="logoutBtn" hidden>Logout</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Login -->
+        <section class="portal-login" id="loginView">
+            <div class="portal-login-card">
+                <span class="eyebrow">STUDENT / PARENT LOGIN</span>
+                <h1>Welcome Back</h1>
+                <p>Login to check attendance, fees, results and school notices.</p>
+
+                <form id="loginForm" novalidate>
+                    <label for="email">Email</label>
+                    <input id="email" type="email" placeholder="you@example.com" required>
+
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="••••••••" required>
+
+                    <button type="submit" class="primary-button" id="loginBtn">Login →</button>
+                    <p class="form-status" id="loginMessage"></p>
+                </form>
+
+                <p class="portal-hint">
+                    Account milne mein dikkat? School office se rabta karein —
+                    har student ke liye login credentials banaye jate hain.
+                </p>
+            </div>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="portal-dash" id="dashView" hidden>
+            <div class="portal-hero">
+                <div>
+                    <span class="eyebrow">MY DASHBOARD</span>
+                    <h1 id="welcomeName">Student</h1>
+                    <p id="profileLine"></p>
+                </div>
+                <button class="secondary-button" id="refreshBtn">Refresh</button>
+            </div>
+
+            <div class="portal-stats" id="portalStats"></div>
+
+            <div class="portal-grid">
+                <article class="portal-card">
+                    <h2>Attendance</h2>
+                    <div id="attendanceSummary"></div>
+                    <div id="attendanceList"></div>
+                </article>
+
+                <article class="portal-card">
+                    <h2>Fee Status</h2>
+                    <div id="feesList"></div>
+                </article>
+            </div>
+
+            <article class="portal-card">
+                <h2>Exam Results</h2>
+                <div id="resultsList"></div>
+            </article>
+
+            <article class="portal-card">
+                <h2>Notice Board</h2>
+                <div id="noticesList"></div>
+            </article>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom" style="border-top:0;">
+            <p>© <span id="year"></span> Bright Future International School. Student Portal.</p>
+            <p><a href="index.html">Home</a> · <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Login — Bright Future International School</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="login-page">
+
+    <main class="login-card">
+        <div class="login-brand">
+            <span class="logo-icon">B</span>
+            <span>
+                <strong>Bright Future</strong>
+                <small>International School</small>
+            </span>
+        </div>
+
+        <h1>Admin Panel</h1>
+        <p>Sign in to manage the school website.</p>
+
+        <form id="loginForm" novalidate>
+            <label class="field">
+                <span>Email</span>
+                <input type="email" id="email" name="email" required
+                       autocomplete="username" placeholder="admin@brightfuture.school">
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input type="password" id="password" name="password" required
+                       autocomplete="current-password" placeholder="Your password">
+            </label>
+
+            <p class="form-error" id="error" role="alert"></p>
+
+            <button type="submit" class="btn primary" id="submitBtn">Sign In</button>
+        </form>
+
+        <a class="login-back" href="../index.html">← Back to website</a>
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

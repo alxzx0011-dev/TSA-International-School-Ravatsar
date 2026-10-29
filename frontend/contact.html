@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Contact Bright Future International School for admissions and general enquiries.">
+
+    <title>Contact Us | Bright Future International School</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="script.js" defer></script>
+
+    <style>
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 30px;
+            margin-top: 35px;
+        }
+
+        .contact-card {
+            padding: 28px;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .contact-card h3 {
+            margin-top: 0;
+        }
+
+        .contact-form {
+            max-width: 700px;
+            margin: 35px auto 0;
+            text-align: left;
+        }
+
+        .contact-form label {
+            display: block;
+            margin: 16px 0 7px;
+            font-weight: 600;
+        }
+
+        .contact-form input,
+        .contact-form select,
+        .contact-form textarea {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #d5dce5;
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        .contact-form input:focus,
+        .contact-form select:focus,
+        .contact-form textarea:focus {
+            outline: 2px solid #c99a3b;
+            border-color: transparent;
+        }
+
+        .contact-form button {
+            margin-top: 22px;
+            cursor: pointer;
+        }
+
+        #contactMessage {
+            margin-top: 18px;
+        }
+
+        @media (max-width: 700px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">B</span>
+            <span>
+                Bright Future
+                <small>INTERNATIONAL SCHOOL</small>
+            </span>
+        </a>
+
+        <button class="menu-toggle"
+                id="menuToggle"
+                aria-label="Toggle navigation"
+                aria-controls="navLinks"
+                aria-expanded="false">
+            ☰
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="academics.html">Academics</a>
+            <a href="admissions.html">Admissions</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="contact.html" aria-current="page">Contact</a>
+            <a href="portal.html" class="portal-link">Student Login</a>
+            <a href="admissions.html" class="nav-button">Apply Now</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-content">
+                <span class="eyebrow">WE WOULD LOVE TO HEAR FROM YOU</span>
+
+                <h1>
+                    Let's Start a<br>
+                    <span>Conversation.</span>
+                </h1>
+
+                <p>
+                    Have questions about admissions, academic
+                    programs or school activities? Send us
+                    your enquiry.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#contact-form" class="primary-button">
+                        Contact Our Team →
+                    </a>
+
+                    <a href="admissions.html" class="secondary-button">
+                        Admissions
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Information -->
+        <section class="section welcome">
+            <span class="eyebrow">GET IN TOUCH</span>
+            <h2>We Are Here to Help</h2>
+
+            <p>
+                Contact our school office for general enquiries
+                and information about the admission process.
+            </p>
+
+            <div class="contact-grid">
+
+                <article class="contact-card">
+                    <h3>📍 School Address</h3>
+                    <p>
+                        Bright Future International School<br>
+                        Add your actual school address here.
+                    </p>
+                </article>
+
+                <article class="contact-card">
+                    <h3>📞 Phone</h3>
+                    <p>
+                        Add your official school phone number.
+                    </p>
+                </article>
+
+                <article class="contact-card">
+                    <h3>✉️ Email</h3>
+                    <p>
+                        Add your official school email address.
+                    </p>
+                </article>
+
+                <article class="contact-card">
+                    <h3>🕒 Office Hours</h3>
+                    <p>
+                        Monday to Saturday<br>
+                        Add the school's actual office hours.
+                    </p>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Contact Form -->
+        <section class="section welcome" id="contact-form">
+            <span class="eyebrow">SEND US A MESSAGE</span>
+
+            <h2>Contact Form</h2>
+
+            <p>
+                Fill in the details below and describe
+                how we can help you.
+            </p>
+
+            <form class="contact-form" id="contactForm">
+
+                <label for="fullName">Your Name</label>
+                <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    placeholder="Enter your full name"
+                    autocomplete="name"
+                    required>
+
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                    required>
+
+                <label for="phone">Phone Number (Optional)</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    autocomplete="tel"
+                    required>
+
+                <label for="subject">Enquiry Type</label>
+                <select id="subject" name="subject" required>
+                    <option value="">Select an enquiry type</option>
+                    <option value="admission">Admissions</option>
+                    <option value="academics">Academic Programs</option>
+                    <option value="fees">School Fees</option>
+                    <option value="general">General Enquiry</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <label for="message">Your Message</label>
+                <textarea
+                    id="message"
+                    name="message"
+                    rows="5"
+                    placeholder="Write your message here..."
+                    required></textarea>
+
+                <button type="submit" class="primary-button">
+                    Submit Message →
+                </button>
+
+                <p id="contactMessage" role="status"></p>
+
+            </form>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="admission section">
+            <span class="eyebrow">YOUR JOURNEY STARTS HERE</span>
+
+            <h2>Interested in Joining Our School?</h2>
+
+            <p>
+                Visit our admissions page to learn about
+                the next steps.
+            </p>
+
+            <a href="admissions.html" class="primary-button">
+                Explore Admissions →
+            </a>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+        <footer id="contact" class="site-footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="index.html" class="footer-logo">
+                    <span class="logo-icon">B</span>
+                    <span>Bright Future<small>INTERNATIONAL SCHOOL</small></span>
+                </a>
+                <p class="footer-tagline" data-setting="tagline">Quality Education &middot; Bright Futures</p>
+                <p class="footer-about">A nurturing community where curiosity, confidence and character grow together.</p>
+                <div class="footer-social" id="socialLinks"></div>
+            </div>
+
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="academics.html">Academics</a>
+                <a href="admissions.html">Admissions</a>
+                <a href="gallery.html">Gallery</a>
+                <a href="contact.html">Contact</a>
+                <a href="portal.html">Student Portal</a>
+            </div>
+
+            <div class="footer-col">
+                <h3>Academics</h3>
+                <a href="academics.html#programs">Programs</a>
+                <a href="academics.html">Core Subjects</a>
+                <a href="academics.html">Learning Approach</a>
+                <a href="admissions.html">Admissions</a>
+                <a href="gallery.html">Campus Life</a>
+            </div>
+
+            <div class="footer-col footer-contact">
+                <h3>Get in Touch</h3>
+                <div id="footerContact"></div>
+                <a href="admissions.html" class="footer-cta">Apply for Admission &rarr;</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; <span id="year"></span> Bright Future International School. All rights reserved.</p>
+            <p><a href="index.html">Home</a> &middot; <a href="about.html">About</a> &middot; <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+
+</body>
+</html>

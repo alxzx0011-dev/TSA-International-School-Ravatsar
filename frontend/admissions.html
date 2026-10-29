@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn about admissions at Bright Future International School.">
+
+    <title>Admissions | Bright Future International School</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">B</span>
+            <span>
+                Bright Future
+                <small>INTERNATIONAL SCHOOL</small>
+            </span>
+        </a>
+
+        <button class="menu-toggle"
+                id="menuToggle"
+                aria-label="Toggle navigation"
+                aria-controls="navLinks"
+                aria-expanded="false">
+            ☰
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="academics.html">Academics</a>
+            <a href="admissions.html" aria-current="page">Admissions</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="contact.html">Contact</a>
+            <a href="portal.html" class="portal-link">Student Login</a>
+            <a href="admissions.html" class="nav-button">Apply Now</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <span class="eyebrow">ADMISSIONS 2026–27</span>
+
+                <h1>
+                    Your Child's Future<br>
+                    <span>Starts Here.</span>
+                </h1>
+
+                <p>
+                    Take the first step towards a learning
+                    journey filled with knowledge, confidence
+                    and new opportunities.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#enquiry" class="primary-button">
+                        Send an Enquiry →
+                    </a>
+
+                    <a href="academics.html" class="secondary-button">
+                        Explore Academics
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admission Introduction -->
+        <section class="welcome section">
+            <span class="eyebrow">JOIN OUR SCHOOL</span>
+
+            <h2>A Simple Admission Journey</h2>
+
+            <p>
+                We welcome families who want to learn more
+                about our academic programs and school
+                environment. Contact the admissions team
+                to confirm eligibility, available seats,
+                fees and required documents.
+            </p>
+        </section>
+
+        <!-- Admission Steps -->
+        <section class="features section">
+
+            <article class="feature-card">
+                <span aria-hidden="true">01</span>
+                <h3>Submit an Enquiry</h3>
+                <p>
+                    Share your contact details and the class
+                    you are interested in.
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span aria-hidden="true">02</span>
+                <h3>Speak With Our Team</h3>
+                <p>
+                    Get information about eligibility,
+                    fees, documents and available seats.
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span aria-hidden="true">03</span>
+                <h3>Complete Application</h3>
+                <p>
+                    Follow the school's instructions to
+                    submit the official application and
+                    required documents.
+                </p>
+            </article>
+
+        </section>
+
+        <!-- Documents -->
+        <section class="welcome section">
+            <span class="eyebrow">BE PREPARED</span>
+
+            <h2>Documents You May Need</h2>
+
+            <p>
+                Depending on the student's class and school
+                policy, documents may include:
+            </p>
+
+            <p>
+                • Student's birth certificate<br>
+                • Previous school's report card, if applicable<br>
+                • Transfer certificate, if required<br>
+                • Parent or guardian contact details<br>
+                • Passport-size photographs, if required
+            </p>
+
+            <p>
+                Please confirm the exact requirements with
+                the school before submitting documents.
+            </p>
+        </section>
+
+        <!-- Enquiry Form -->
+        <section class="welcome section" id="enquiry">
+            <span class="eyebrow">LET'S CONNECT</span>
+
+            <h2>Admission Enquiry</h2>
+
+            <p>
+                Complete this form to prepare your enquiry.
+                This demo form does not send or save data yet.
+            </p>
+
+            <form id="admissionForm"
+                  style="max-width: 650px; margin: 30px auto; text-align: left;">
+
+                <label for="parentName">Parent / Guardian Name</label>
+                <input type="text"
+                       id="parentName"
+                       name="parentName"
+                       placeholder="Enter parent or guardian name"
+                       required
+                       style="width: 100%; padding: 14px; margin: 8px 0 18px;">
+
+                <label for="studentName">Student Name</label>
+                <input type="text"
+                       id="studentName"
+                       name="studentName"
+                       placeholder="Enter student name"
+                       required
+                       style="width: 100%; padding: 14px; margin: 8px 0 18px;">
+
+                <label for="className">Class Applying For</label>
+                <select id="className"
+                        name="className"
+                        required
+                        style="width: 100%; padding: 14px; margin: 8px 0 18px;">
+                    <option value="">Select a class</option>
+                    <option>Nursery</option>
+                    <option>LKG</option>
+                    <option>UKG</option>
+                    <option>Class 1</option>
+                    <option>Class 2</option>
+                    <option>Class 3</option>
+                    <option>Class 4</option>
+                    <option>Class 5</option>
+                    <option>Class 6</option>
+                    <option>Class 7</option>
+                    <option>Class 8</option>
+                    <option>Class 9</option>
+                    <option>Class 10</option>
+                    <option>Class 11</option>
+                    <option>Class 12</option>
+                </select>
+
+                <label for="parentEmail">Email Address</label>
+                <input type="email"
+                       id="parentEmail"
+                       name="parentEmail"
+                       placeholder="Enter your email"
+                       required
+                       style="width: 100%; padding: 14px; margin: 8px 0 18px;">
+
+                <label for="phone">Phone Number</label>
+                <input type="tel"
+                       id="phone"
+                       name="phone"
+                       placeholder="Enter your phone number"
+                       required
+                       style="width: 100%; padding: 14px; margin: 8px 0 18px;">
+
+                <label for="message">Your Message (Optional)</label>
+                <textarea id="message"
+                          name="message"
+                          rows="4"
+                          placeholder="Ask us a question"
+                          style="width: 100%; padding: 14px; margin: 8px 0 18px;"></textarea>
+
+                <button type="submit" class="primary-button">
+                    Submit Enquiry →
+                </button>
+
+                <p id="formMessage" role="status"></p>
+            </form>
+        </section>
+
+        <!-- Final Call to Action -->
+        <section class="admission section">
+            <span class="eyebrow">HAVE QUESTIONS?</span>
+
+            <h2>We Are Here to Help</h2>
+
+            <p>
+                Contact the school to learn more about
+                admission dates, fees and eligibility.
+            </p>
+
+            <a href="contact.html" class="primary-button">
+                Contact Us →
+            </a>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+        <footer id="contact" class="site-footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="index.html" class="footer-logo">
+                    <span class="logo-icon">B</span>
+                    <span>Bright Future<small>INTERNATIONAL SCHOOL</small></span>
+                </a>
+                <p class="footer-tagline" data-setting="tagline">Quality Education &middot; Bright Futures</p>
+                <p class="footer-about">A nurturing community where curiosity, confidence and character grow together.</p>
+                <div class="footer-social" id="socialLinks"></div>
+            </div>
+
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="academics.html">Academics</a>
+                <a href="admissions.html">Admissions</a>
+                <a href="gallery.html">Gallery</a>
+                <a href="contact.html">Contact</a>
+                <a href="portal.html">Student Portal</a>
+            </div>
+
+            <div class="footer-col">
+                <h3>Academics</h3>
+                <a href="academics.html#programs">Programs</a>
+                <a href="academics.html">Core Subjects</a>
+                <a href="academics.html">Learning Approach</a>
+                <a href="admissions.html">Admissions</a>
+                <a href="gallery.html">Campus Life</a>
+            </div>
+
+            <div class="footer-col footer-contact">
+                <h3>Get in Touch</h3>
+                <div id="footerContact"></div>
+                <a href="admissions.html" class="footer-cta">Apply for Admission &rarr;</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; <span id="year"></span> Bright Future International School. All rights reserved.</p>
+            <p><a href="index.html">Home</a> &middot; <a href="about.html">About</a> &middot; <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+
+</body>
+</html>
