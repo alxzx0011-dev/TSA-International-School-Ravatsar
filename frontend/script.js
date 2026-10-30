@@ -21,6 +21,12 @@
         }[c]));
     }
 
+    function safeUrl(value) {
+        const url = String(value ?? "").trim();
+        // allow http(s) and relative paths; block javascript:, data: etc.
+        return /^(https?:\/\/|[^:]*$)/i.test(url) ? url : "";
+    }
+
     function fmtDate(value) {
         if (!value) return "";
         const parsed = new Date(value);
@@ -134,8 +140,8 @@
                 ["youtube", "YouTube"],
             ];
             const links = labels
-                .filter(([key]) => settings[key])
-                .map(([key, label]) => `<a href="${esc(settings[key])}" target="_blank" rel="noopener">${label}</a>`);
+                .filter(([key]) => safeUrl(settings[key]))
+                .map(([key, label]) => `<a href="${esc(safeUrl(settings[key]))}" target="_blank" rel="noopener">${label}</a>`);
             socials.innerHTML = links.join("");
         }
     }
@@ -305,7 +311,7 @@
                 (n) => `<article class="news-card">
                     ${
                         n.image_url
-                            ? `<img class="news-image" src="${esc(n.image_url)}" alt="${esc(n.title)}" loading="lazy">`
+                            ? `<img class="news-image" src="${esc(safeUrl(n.image_url))}" alt="${esc(n.title)}" loading="lazy">`
                             : `<div class="news-image news-image-fallback" aria-hidden="true">📰</div>`
                     }
                     <div class="news-body">
@@ -326,7 +332,7 @@
                     item.title,
                     `
                     <p class="modal-meta">${esc(fmtDate(item.published_at))}</p>
-                    ${item.image_url ? `<img src="${esc(item.image_url)}" alt="${esc(item.title)}" style="width:100%;border-radius:12px;max-height:320px;object-fit:cover;">` : ""}
+                    ${item.image_url ? `<img src="${esc(safeUrl(item.image_url))}" alt="${esc(item.title)}" style="width:100%;border-radius:12px;max-height:320px;object-fit:cover;">` : ""}
                     <p style="white-space:pre-wrap;line-height:1.8;">${esc(item.content)}</p>`
                 );
             });
@@ -386,7 +392,7 @@
             grid.innerHTML = selected
                 .map(
                     (i) => `<article class="gallery-card">
-                        <img src="${esc(i.image_url)}" alt="${esc(i.title)}" loading="lazy">
+                        <img src="${esc(safeUrl(i.image_url))}" alt="${esc(i.title)}" loading="lazy">
                         <div class="gallery-card-content">
                             <h3>${esc(i.title)}</h3>
                             <p>${esc(i.category)}</p>
@@ -428,7 +434,7 @@
                     <div class="faculty-media">
                         ${
                             f.image_url
-                                ? `<img class="faculty-photo" src="${esc(f.image_url)}" alt="${esc(f.name)}" loading="lazy">`
+                                ? `<img class="faculty-photo" src="${esc(safeUrl(f.image_url))}" alt="${esc(f.name)}" loading="lazy">`
                                 : `<div class="faculty-photo faculty-photo-fallback" aria-hidden="true">${esc(f.name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase())}</div>`
                         }
                         <div class="faculty-overlay">

@@ -75,7 +75,7 @@
         const password = $("password").value;
 
         if (!email || !password) {
-            setMessage("Email aur password dono zaroori hain.", "error");
+            setMessage("Both email and password are required.", "error");
             return;
         }
 
@@ -88,13 +88,13 @@
         });
 
         if (!data) {
-            setMessage("Login failed — email ya password ghalat hai.", "error");
+            setMessage("Login failed — incorrect email or password.", "error");
             $("loginBtn").disabled = false;
             return;
         }
 
         if (data.user && data.user.role !== "student") {
-            setMessage("Yeh student portal hai. Staff ke liye /admin/ use karein.", "error");
+            setMessage("This is the student portal. Staff should use /admin/.", "error");
             $("loginBtn").disabled = false;
             return;
         }
@@ -120,7 +120,7 @@
 
         const data = await getJSON("/api/portal/me");
         if (!data) {
-            if (localStorage.getItem(TOKEN_KEY)) setMessage("Session expired — dobara login karein.", "error");
+            if (localStorage.getItem(TOKEN_KEY)) setMessage("Session expired — please log in again.", "error");
             return;
         }
 
@@ -175,7 +175,7 @@
                             </tr>`).join("")}
                     </tbody>
                 </table>`
-            : `<p class="empty-note">Abhi tak attendance mark nahi hui.</p>`;
+            : `<p class="empty-note">No attendance has been marked yet.</p>`;
 
         $("feesList").innerHTML = data.fees.length
             ? `<table class="portal-table">
@@ -190,7 +190,7 @@
                             </tr>`).join("")}
                     </tbody>
                 </table>`
-            : `<p class="empty-note">Koi fee voucher available nahi hai.</p>`;
+            : `<p class="empty-note">No fee vouchers are available.</p>`;
 
         // results grouped by exam
         const exams = {};
@@ -221,7 +221,7 @@
                 </table>`;
         }).join("");
 
-        $("resultsList").innerHTML = examBlocks || `<p class="empty-note">Results abhi announce nahi hue.</p>`;
+        $("resultsList").innerHTML = examBlocks || `<p class="empty-note">Results have not been announced yet.</p>`;
 
         $("noticesList").innerHTML = data.notices.length
             ? data.notices.map((n) => `
@@ -232,7 +232,7 @@
                         </div>
                         <span class="muted">${fmtDate(n.created_at)}</span>
                     </div>`).join("")
-            : `<p class="empty-note">Koi notice nahi hai.</p>`;
+            : `<p class="empty-note">There are no notices.</p>`;
     }
 
     /* ---------------- start ---------------- */

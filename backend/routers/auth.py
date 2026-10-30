@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from auth_utils import create_access_token
 from deps import CurrentUser, DbSession
+from ratelimit import rate_limit
 from model import User
 from schemas import Token, UserCreate, UserLogin, UserResponse
 from security import hash_password, verify_password
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post(
     "/register",
+    dependencies=[Depends(rate_limit("register", 5, 3600))],
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
 )
@@ -49,7 +51,11 @@ def register_user(data: UserCreate, db: DbSession):
     return user
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    dependencies=[Depends(rate_limit("login", 10, 300))],
+)
 def login_user(data: UserLogin, db: DbSession):
     email = data.email.strip().lower()
 

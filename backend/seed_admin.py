@@ -24,7 +24,7 @@ load_dotenv(ENV_PATH)
 
 Base.metadata.create_all(bind=engine)
 
-email = os.getenv("ADMIN_EMAIL", "admin@brightfuture.school").strip().lower()
+email = os.getenv("ADMIN_EMAIL", "admin@tsarawatsar.school").strip().lower()
 password = os.getenv("ADMIN_PASSWORD")
 generated = False
 

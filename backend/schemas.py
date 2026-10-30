@@ -274,7 +274,7 @@ class StudentBase(BaseModel):
 class StudentCreate(StudentBase):
     admission_no: Optional[str] = Field(default=None, max_length=30)
     login_email: Optional[str] = Field(default=None, max_length=255)
-    login_password: Optional[str] = Field(default=None, min_length=6, max_length=128)
+    login_password: Optional[str] = Field(default=None, min_length=8, max_length=128)
 
 
 class StudentUpdate(BaseModel):
@@ -288,7 +288,7 @@ class StudentUpdate(BaseModel):
     parent_email: Optional[str] = Field(default=None, max_length=255)
     is_active: Optional[bool] = None
     login_email: Optional[str] = Field(default=None, max_length=255)
-    login_password: Optional[str] = Field(default=None, min_length=6, max_length=128)
+    login_password: Optional[str] = Field(default=None, min_length=8, max_length=128)
 
 
 class StudentOut(StudentBase):

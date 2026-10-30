@@ -1,5 +1,5 @@
 /* =============================================================
-   Bright Future International School — Admin Dashboard JS
+   TSA International School, Rawatsar — Admin Dashboard JS
    ============================================================= */
 
 (function () {
@@ -785,7 +785,7 @@
             <div class="page-head">
                 <div>
                     <h2>Students</h2>
-                    <p>Student records, classes aur login accounts manage karein.</p>
+                    <p>Manage student records, classes and login accounts.</p>
                 </div>
                 <button class="btn primary" id="addStudentBtn">+ Add Student</button>
             </div>
@@ -917,7 +917,7 @@
             <div class="page-head">
                 <div>
                     <h2>Attendance</h2>
-                    <p>Daily class-wise attendance mark karein.</p>
+                    <p>Mark daily class-wise attendance.</p>
                 </div>
             </div>
             <div class="card" style="margin-bottom:18px;">
@@ -952,7 +952,7 @@
             students.forEach((s) => { statusMap[s.student_id] = statusMap[s.student_id] || "present"; });
 
             if (!students.length) {
-                document.getElementById("attList").innerHTML = `<p class="empty">Is class me koi active student nahi hai.</p>`;
+                document.getElementById("attList").innerHTML = `<p class="empty">There are no active students in this class.</p>`;
                 return;
             }
 
@@ -1010,7 +1010,7 @@
     --------------------------------------------------------- */
     async function renderFees() {
         if (user.role !== "admin") {
-            viewEl.innerHTML = `<div class="card"><p class="empty">Fees sirf admin manage kar sakta hai.</p></div>`;
+            viewEl.innerHTML = `<div class="card"><p class="empty">Only an admin can manage fees.</p></div>`;
             return;
         }
 
@@ -1018,7 +1018,7 @@
             <div class="page-head">
                 <div>
                     <h2>Fee Management</h2>
-                    <p>Vouchers banayein aur paid/unpaid mark karein.</p>
+                    <p>Create vouchers and mark them as paid/unpaid.</p>
                 </div>
                 <button class="btn primary" id="addFeeBtn">+ New Voucher</button>
             </div>
@@ -1099,7 +1099,7 @@
             <div class="page-head">
                 <div>
                     <h2>Exam Results</h2>
-                    <p>Exam marks enter karein aur results dekhein.</p>
+                    <p>Enter exam marks and view results.</p>
                 </div>
                 <button class="btn primary" id="addResultBtn">+ Enter Marks</button>
             </div>
@@ -1161,7 +1161,7 @@
                     { exam_name: "Mid-Term 2026", class_name: classes[0], subject: "", total_marks: 100 },
                     async (data) => {
                         const students = (await api(`/api/students?class_name=${encodeURIComponent(data.class_name)}`)).filter((s) => s.is_active);
-                        if (!students.length) { toast("Is class me student nahi hain", "error"); return; }
+                        if (!students.length) { toast("There are no students in this class", "error"); return; }
 
                         const bodyHtml = `
                             <p>${esc(data.exam_name)} · ${esc(data.class_name)} · ${esc(data.subject)} (/${esc(data.total_marks)})</p>

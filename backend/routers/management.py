@@ -80,7 +80,7 @@ def _unique_admission_no(db: DbSession, base: str) -> str:
 
 def _make_login(db: DbSession, student: Student, email: Optional[str], password: Optional[str]):
     """Create (or reuse) a student login account. Returns credentials dict."""
-    email = (email or "").strip().lower() or f"{student.admission_no.lower()}@student.brightfuture.school"
+    email = (email or "").strip().lower() or f"{student.admission_no.lower()}@student.tsarawatsar.school"
     password = password or f"Sms{secrets.token_hex(3)}"
 
     existing = db.scalar(select(User).where(User.email == email))

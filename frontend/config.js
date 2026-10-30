@@ -1,2 +1,2 @@
-// Production me same origin use hoga (FastAPI khud frontend serve kar raha hai)
+// Same origin is used in production (FastAPI serves the frontend)
 window.SCHOOL_API = window.location.origin;

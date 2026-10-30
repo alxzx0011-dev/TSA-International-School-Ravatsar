@@ -2,13 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 
 from deps import AdminUser, DbSession, require_admin
+from ratelimit import rate_limit
 from model import ContactMessage
 from schemas import ContactCreate, ContactOut
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 
 
-@router.post("", response_model=ContactOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ContactOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit("contact", 5, 600))],
+)
 def create_message(data: ContactCreate, db: DbSession):
     message = ContactMessage(**data.model_dump())
 

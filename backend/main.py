@@ -11,8 +11,16 @@ from routers import admissions, auth, contact, content, dashboard, management, s
 # Create any missing tables in Supabase on startup
 Base.metadata.create_all(bind=engine)
 
+# Set ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com in
+# backend/.env for production. Defaults to "*" for local development.
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("ALLOWED_ORIGINS", "*").split(",")
+    if o.strip()
+]
+
 app = FastAPI(
-    title="Bright Future International School API",
+    title="TSA International School, Rawatsar API",
     description="Backend API for the school website and admin panel",
     version="2.0.0",
 )
@@ -21,7 +29,7 @@ app = FastAPI(
 # for local development. Restrict this to your real domain in production.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

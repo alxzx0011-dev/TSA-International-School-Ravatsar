@@ -2,13 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 
 from deps import AdminUser, DbSession, require_admin
+from ratelimit import rate_limit
 from model import Admission
 from schemas import AdmissionCreate, AdmissionOut, AdmissionStatusUpdate
 
 router = APIRouter(prefix="/api/admissions", tags=["Admissions"])
 
 
-@router.post("", response_model=AdmissionOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=AdmissionOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit("admission", 5, 600))],
+)
 def create_admission(data: AdmissionCreate, db: DbSession):
     admission = Admission(**data.model_dump())
 
