@@ -1,5 +1,5 @@
 /* =====================================================
-   BRIGHT FUTURE INTERNATIONAL SCHOOL
+   TSA INTERNATIONAL SCHOOL, RAWATSAR
    Website JavaScript — live data from the school backend
    ===================================================== */
 
@@ -115,7 +115,21 @@
 
         document.querySelectorAll("[data-setting]").forEach((el) => {
             const value = settings[el.dataset.setting];
-            if (value) el.textContent = value;
+            if (!value) return;
+
+            // The homepage hero keeps its two-line gold highlight when the
+            // admin changes the title from Site Settings.
+            if (el.dataset.setting === "hero_title") {
+                const parts = String(value).match(/^(.*?[.!?])\s+(.*)$/);
+                if (parts) {
+                    el.innerHTML = `${esc(parts[1])}<br><span>${esc(parts[2])}</span>`;
+                } else {
+                    el.textContent = value;
+                }
+                return;
+            }
+
+            el.textContent = value;
         });
 
         const footerContact = document.getElementById("footerContact");
@@ -210,6 +224,14 @@
         "Thank you! Your admission enquiry has been received. Our admissions team will contact you soon."
     );
 
+    const SUBJECT_LABELS = {
+        admission: "Admissions",
+        academics: "Academic Programs",
+        fees: "School Fees",
+        general: "General Enquiry",
+        other: "Other",
+    };
+
     wireForm(
         "contactForm",
         "/api/contact",
@@ -223,14 +245,6 @@
         "contactMessage",
         "Message sent successfully! We will get back to you shortly."
     );
-
-    const SUBJECT_LABELS = {
-        admission: "Admissions",
-        academics: "Academic Programs",
-        fees: "School Fees",
-        general: "General Enquiry",
-        other: "Other",
-    };
 
     /* ---------------------------------------------------------
        5. Notices

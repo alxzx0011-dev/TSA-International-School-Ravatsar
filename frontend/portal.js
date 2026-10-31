@@ -5,8 +5,8 @@
     "use strict";
 
     const API = window.SCHOOL_API || "";
-    const TOKEN_KEY = "bfis_portal_token";
-    const USER_KEY = "bfis_portal_user";
+    const TOKEN_KEY = "tsa_portal_token";
+    const USER_KEY = "tsa_portal_user";
 
     const $ = (id) => document.getElementById(id);
 
@@ -94,7 +94,7 @@
         }
 
         if (data.user && data.user.role !== "student") {
-            setMessage("This is the student portal. Staff should use /admin/.", "error");
+            setMessage("This is the student portal. Staff should use the admin panel.", "error");
             $("loginBtn").disabled = false;
             return;
         }

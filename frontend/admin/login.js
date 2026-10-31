@@ -1,8 +1,8 @@
 /* Admin login */
 (function () {
     const API = window.SCHOOL_API || "http://127.0.0.1:8000";
-    const TOKEN_KEY = "bfis_token";
-    const USER_KEY = "bfis_user";
+    const TOKEN_KEY = "tsa_admin_token";
+    const USER_KEY = "tsa_admin_user";
 
     // Already signed in? Go straight to the dashboard.
     if (localStorage.getItem(TOKEN_KEY)) {

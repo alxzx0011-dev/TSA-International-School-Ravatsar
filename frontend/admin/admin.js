@@ -6,8 +6,8 @@
     "use strict";
 
     const API = window.SCHOOL_API || "http://127.0.0.1:8000";
-    const TOKEN_KEY = "bfis_token";
-    const USER_KEY = "bfis_user";
+    const TOKEN_KEY = "tsa_admin_token";
+    const USER_KEY = "tsa_admin_user";
 
     const token = localStorage.getItem(TOKEN_KEY);
     let user = null;
@@ -714,7 +714,7 @@
     --------------------------------------------------------- */
     const SETTING_FIELDS = [
         { key: "school_name", label: "School Name" },
-        { key: "tagline", label: "Tagline", placeholder: "Quality Education · Bright Futures" },
+        { key: "tagline", label: "Tagline", placeholder: "Excellence in Education · Values for Life" },
         { key: "phone", label: "Phone", full: false },
         { key: "email", label: "Email" },
         { key: "address", label: "Address", type: "textarea", rows: 2, full: true },

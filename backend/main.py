@@ -20,7 +20,7 @@ ALLOWED_ORIGINS = [
 ]
 
 app = FastAPI(
-    title="TSA International School, Rawatsar API",
+    title="TSA International School, Rawatsar, Rajasthan API",
     description="Backend API for the school website and admin panel",
     version="2.0.0",
 )
