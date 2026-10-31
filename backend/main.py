@@ -47,7 +47,9 @@ app.include_router(settings.admin)
 
 
 @app.get("/api/health")
+@app.head("/api/health")
 @app.get("/health")
+@app.head("/health")
 def health_check():
     return {"status": "healthy"}
 
