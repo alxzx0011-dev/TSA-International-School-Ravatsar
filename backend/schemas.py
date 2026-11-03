@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def clean_email(value: str) -> str:
@@ -298,12 +298,14 @@ class StudentOut(StudentBase):
     admission_no: str
     is_active: bool
     login_email: Optional[str] = None
+    parent_login_email: Optional[str] = None
     created_at: Optional[datetime] = None
 
 
 class StudentCreateResponse(BaseModel):
     student: StudentOut
     credentials: Optional[dict] = None
+    parent_credentials: Optional[dict] = None
 
 
 class AttendanceRecord(BaseModel):
@@ -406,3 +408,131 @@ class ResultOut(BaseModel):
     created_at: Optional[datetime] = None
     student_name: Optional[str] = None
     class_name: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Teacher notes / parent complaints
+# ---------------------------------------------------------------------------
+class TeacherNoteCreate(BaseModel):
+    student_id: Optional[int] = None
+    class_name: Optional[str] = Field(default=None, max_length=50)
+    title: str = Field(min_length=2, max_length=200)
+    message: str = Field(min_length=2, max_length=5000)
+    category: str = Field(default="note", max_length=30)
+    visible_to_parent: bool = True
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value not in {"note", "homework", "remark"}:
+            raise ValueError("category must be note, homework or remark")
+        return value
+
+    @model_validator(mode="after")
+    def require_target(self):
+        if not self.student_id and not (self.class_name or "").strip():
+            raise ValueError("Choose a student or a class")
+        return self
+
+
+class TeacherNoteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    student_id: Optional[int] = None
+    class_name: Optional[str] = None
+    teacher_name: str
+    title: str
+    message: str
+    category: str
+    visible_to_parent: bool
+    created_at: Optional[datetime] = None
+    student_name: Optional[str] = None
+
+
+class ComplaintCreate(BaseModel):
+    student_id: int
+    subject: str = Field(min_length=2, max_length=200)
+    message: str = Field(min_length=2, max_length=5000)
+
+
+class ComplaintRespond(BaseModel):
+    response: str = Field(min_length=2, max_length=5000)
+    status: str = Field(default="answered", max_length=20)
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value not in {"answered", "closed", "open"}:
+            raise ValueError("status must be open, answered or closed")
+        return value
+
+
+class ComplaintOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    student_id: int
+    parent_id: int
+    parent_name: str
+    subject: str
+    message: str
+    status: str
+    response: Optional[str] = None
+    responded_by: Optional[str] = None
+    responded_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    student_name: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Admin user management
+# ---------------------------------------------------------------------------
+class ManagedUserCreate(BaseModel):
+    full_name: str = Field(min_length=2, max_length=150)
+    email: str = Field(min_length=5, max_length=255)
+    password: str = Field(min_length=8, max_length=128)
+    role: str = Field(default="teacher", max_length=20)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        return clean_email(value)
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value not in {"admin", "owner", "teacher", "admissions", "parent", "student"}:
+            raise ValueError("Invalid role")
+        return value
+
+
+class ManagedUserUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=150)
+    role: Optional[str] = Field(default=None, max_length=20)
+    is_active: Optional[bool] = None
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, value):
+        if value is None:
+            return value
+        value = value.strip().lower()
+        if value not in {"admin", "owner", "teacher", "admissions", "parent", "student"}:
+            raise ValueError("Invalid role")
+        return value
+
+
+class ManagedUserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    email: str
+    role: str
+    is_active: bool
+    created_at: Optional[datetime] = None

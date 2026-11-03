@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Parent portal — check your child's profile, attendance, fees, results, teacher notes and raise complaints.">
+
+    <title>Parent Portal | TSA International School, Rawatsar, Rajasthan</title>
+
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="parent.js" defer></script>
+</head>
+<body class="portal-page">
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <img src="assets/tsa-logo-256.jpg" alt="TSA International School logo" class="logo-icon logo-img">
+            <span>
+                TSA International
+                <small>PARENT PORTAL</small>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="logoutBtn" hidden>Logout</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Login -->
+        <section class="portal-login" id="loginView">
+            <div class="portal-login-card">
+                <span class="eyebrow">PARENT PORTAL</span>
+                <h1>Welcome, Parent</h1>
+                <p>Login to see your child's profile, attendance, fees, results and teacher notes.</p>
+
+                <form id="loginForm" novalidate>
+                    <label for="email">Parent Email</label>
+                    <input id="email" type="email" placeholder="you@example.com" required>
+
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="••••••••" required>
+
+                    <button type="submit" class="primary-button" id="loginBtn">Login →</button>
+                    <p class="form-status" id="loginMessage"></p>
+                </form>
+
+                <p class="portal-hint">
+                    Parent login is created automatically when the school adds your child.
+                    Please contact the school office if you need help with your account.
+                </p>
+            </div>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="portal-dash" id="dashView" hidden>
+            <div class="portal-hero">
+                <div>
+                    <span class="eyebrow">PARENT DASHBOARD</span>
+                    <h1 id="welcomeName">Parent</h1>
+                    <p id="profileLine"></p>
+                </div>
+                <button class="secondary-button" id="refreshBtn">Refresh</button>
+            </div>
+
+            <div class="portal-stats" id="parentStats"></div>
+
+            <div id="childrenWrap"></div>
+
+            <div class="portal-grid">
+                <article class="portal-card">
+                    <h2>Raise a Complaint</h2>
+                    <p class="muted">Send a complaint or concern to your child's teacher.</p>
+
+                    <form id="complaintForm" novalidate>
+                        <label for="complaintChild">Child</label>
+                        <select id="complaintChild" required></select>
+
+                        <label for="complaintSubject">Subject</label>
+                        <input id="complaintSubject" type="text" placeholder="Short subject" required>
+
+                        <label for="complaintMessage">Message</label>
+                        <textarea id="complaintMessage" rows="4" placeholder="Describe your concern" required></textarea>
+
+                        <button type="submit" class="primary-button" id="complaintBtn">Send Complaint</button>
+                        <p class="form-status" id="complaintStatus"></p>
+                    </form>
+                </article>
+
+                <article class="portal-card">
+                    <h2>My Complaints</h2>
+                    <div id="complaintsList"></div>
+                </article>
+            </div>
+
+            <article class="portal-card">
+                <h2>Notice Board</h2>
+                <div id="noticesList"></div>
+            </article>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom" style="border-top:0;">
+            <p>© <span id="year"></span> TSA International School, Rawatsar, Rajasthan. Parent Portal.</p>
+            <p><a href="index.html">Home</a> · <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>

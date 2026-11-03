@@ -180,3 +180,52 @@ class ExamResult(Base):
     marks_obtained = Column(Float, nullable=False)
     total_marks = Column(Float, nullable=False, default=100)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class TeacherNote(Base):
+    """A note, homework task or remark posted by a teacher for a student/class."""
+
+    __tablename__ = "teacher_notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=True, index=True)
+    class_name = Column(String(50), nullable=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    teacher_name = Column(String(150), nullable=False)
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    category = Column(String(30), nullable=False, default="note")  # note|homework|remark
+    visible_to_parent = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ParentComplaint(Base):
+    """A complaint raised by a parent, answered by a teacher."""
+
+    __tablename__ = "parent_complaints"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    parent_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    parent_name = Column(String(150), nullable=False)
+    subject = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="open", index=True)  # open|answered|closed
+    response = Column(Text, nullable=True)
+    responded_by = Column(String(150), nullable=True)
+    responded_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ParentLink(Base):
+    """Links a parent login to one or more students."""
+
+    __tablename__ = "parent_links"
+    __table_args__ = (
+        UniqueConstraint("parent_user_id", "student_id", name="uq_parent_link"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    parent_user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

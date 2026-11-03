@@ -6,7 +6,17 @@ from fastapi.staticfiles import StaticFiles
 
 import model  # noqa: F401  (registers all SQLAlchemy models)
 from database import Base, engine
-from routers import admissions, auth, contact, content, dashboard, management, settings
+from routers import (
+    admissions,
+    auth,
+    contact,
+    content,
+    dashboard,
+    management,
+    portals,
+    settings,
+    users,
+)
 
 # Create any missing tables in Supabase on startup
 Base.metadata.create_all(bind=engine)
@@ -42,6 +52,9 @@ app.include_router(content.public)
 app.include_router(content.admin)
 app.include_router(dashboard.router)
 app.include_router(management.router)
+app.include_router(portals.parent)
+app.include_router(portals.teacher)
+app.include_router(users.router)
 app.include_router(settings.public)
 app.include_router(settings.admin)
 

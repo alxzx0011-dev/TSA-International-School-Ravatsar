@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+
+    <meta name="description" content="Teacher portal — manage students, post notes and homework, answer parent complaints, mark attendance and enter results.">
+
+    <title>Teacher Portal | TSA International School, Rawatsar, Rajasthan</title>
+
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="teacher.js" defer></script>
+</head>
+<body class="portal-page">
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <img src="assets/tsa-logo-256.jpg" alt="TSA International School logo" class="logo-icon logo-img">
+            <span>
+                TSA International
+                <small>TEACHER PORTAL</small>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="logoutBtn" hidden>Logout</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Login -->
+        <section class="portal-login" id="loginView">
+            <div class="portal-login-card">
+                <span class="eyebrow">TEACHER PORTAL</span>
+                <h1>Welcome, Teacher</h1>
+                <p>Sign in to manage your students, notes, complaints, attendance and results.</p>
+
+                <form id="loginForm" novalidate>
+                    <label for="email">School Email</label>
+                    <input id="email" type="email" placeholder="teacher@tsarawatsar.school" required>
+
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="••••••••" required>
+
+                    <button type="submit" class="primary-button" id="loginBtn">Login →</button>
+                    <p class="form-status" id="loginMessage"></p>
+                </form>
+
+                <p class="portal-hint">
+                    Teacher accounts are created by the school administrator.
+                    Please contact the school office if you cannot sign in.
+                </p>
+            </div>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="portal-dash" id="dashView" hidden>
+            <div class="portal-hero">
+                <div>
+                    <span class="eyebrow">TEACHER DASHBOARD</span>
+                    <h1 id="welcomeName">Teacher</h1>
+                    <p id="profileLine"></p>
+                </div>
+                <button class="secondary-button" id="refreshBtn">Refresh</button>
+            </div>
+
+            <nav class="portal-tabs" id="portalTabs">
+                <button class="portal-tab active" data-tab="overview">Overview</button>
+                <button class="portal-tab" data-tab="students">Students</button>
+                <button class="portal-tab" data-tab="notes">Notes &amp; Homework</button>
+                <button class="portal-tab" data-tab="complaints">Parent Complaints</button>
+                <button class="portal-tab" data-tab="attendance">Attendance</button>
+                <button class="portal-tab" data-tab="results">Exam Results</button>
+            </nav>
+
+            <!-- Overview -->
+            <section class="portal-section" data-panel="overview">
+                <div class="portal-stats" id="teacherStats"></div>
+
+                <div class="portal-grid">
+                    <article class="portal-card">
+                        <h2>Recent Notes</h2>
+                        <div id="recentNotes"></div>
+                    </article>
+
+                    <article class="portal-card">
+                        <h2>Open Complaints</h2>
+                        <div id="recentComplaints"></div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Students -->
+            <section class="portal-section" data-panel="students" hidden>
+                <article class="portal-card">
+                    <h2>Students</h2>
+                    <div class="portal-toolbar">
+                        <div>
+                            <label for="studentSearch">Search</label>
+                            <input id="studentSearch" type="search" placeholder="Name or admission no">
+                        </div>
+                        <div>
+                            <label for="studentClass">Class</label>
+                            <select id="studentClass"></select>
+                        </div>
+                        <button class="primary-button" id="studentSearchBtn">Search</button>
+                    </div>
+                    <div id="studentList"></div>
+                </article>
+            </section>
+
+            <!-- Notes -->
+            <section class="portal-section" data-panel="notes" hidden>
+                <div class="portal-grid">
+                    <article class="portal-card">
+                        <h2>Post a Note</h2>
+                        <p class="muted">Send homework, a class note or a personal remark to a student. Parents can see notes marked visible.</p>
+
+                        <form id="noteForm" novalidate>
+                            <label for="noteTarget">Send To</label>
+                            <select id="noteTarget">
+                                <option value="class">Entire class</option>
+                                <option value="student">One student</option>
+                            </select>
+
+                            <label for="noteClass">Class</label>
+                            <select id="noteClass" required></select>
+
+                            <div id="noteStudentWrap" hidden>
+                                <label for="noteStudent">Student</label>
+                                <select id="noteStudent"></select>
+                            </div>
+
+                            <label for="noteCategory">Type</label>
+                            <select id="noteCategory">
+                                <option value="note">Note</option>
+                                <option value="homework">Homework</option>
+                                <option value="remark">Remark</option>
+                            </select>
+
+                            <label for="noteTitle">Title</label>
+                            <input id="noteTitle" type="text" placeholder="e.g. Maths homework — Chapter 5" required>
+
+                            <label for="noteMessage">Message</label>
+                            <textarea id="noteMessage" rows="5" placeholder="Write the note or homework details" required></textarea>
+
+                            <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:13px;">
+                                <input id="noteVisible" type="checkbox" checked style="width:auto;">
+                                Visible to parents
+                            </label>
+
+                            <button type="submit" class="primary-button" id="noteBtn">Post Note</button>
+                            <p class="form-status" id="noteStatus"></p>
+                        </form>
+                    </article>
+
+                    <article class="portal-card">
+                        <h2>Posted Notes</h2>
+                        <div id="notesList"></div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Complaints -->
+            <section class="portal-section" data-panel="complaints" hidden>
+                <article class="portal-card">
+                    <h2>Parent Complaints</h2>
+                    <div class="portal-toolbar">
+                        <div>
+                            <label for="complaintFilter">Status</label>
+                            <select id="complaintFilter">
+                                <option value="">All</option>
+                                <option value="open">Open</option>
+                                <option value="answered">Answered</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                        <button class="primary-button" id="complaintFilterBtn">Filter</button>
+                    </div>
+                    <div id="complaintsList"></div>
+                </article>
+            </section>
+
+            <!-- Attendance -->
+            <section class="portal-section" data-panel="attendance" hidden>
+                <article class="portal-card">
+                    <h2>Mark Attendance</h2>
+                    <div class="portal-toolbar">
+                        <div>
+                            <label for="attClass">Class</label>
+                            <select id="attClass"></select>
+                        </div>
+                        <div>
+                            <label for="attDay">Date</label>
+                            <input id="attDay" type="date">
+                        </div>
+                        <button class="primary-button" id="attLoad">Load Class</button>
+                    </div>
+                    <div id="attList"></div>
+                </article>
+            </section>
+
+            <!-- Results -->
+            <section class="portal-section" data-panel="results" hidden>
+                <article class="portal-card">
+                    <h2>Enter Exam Results</h2>
+                    <div class="portal-toolbar">
+                        <div class="grow">
+                            <label for="resExam">Exam Name</label>
+                            <input id="resExam" type="text" placeholder="e.g. Mid-Term 2027">
+                        </div>
+                        <div>
+                            <label for="resClass">Class</label>
+                            <select id="resClass"></select>
+                        </div>
+                        <div>
+                            <label for="resSubject">Subject</label>
+                            <input id="resSubject" type="text" placeholder="e.g. Mathematics">
+                        </div>
+                        <div>
+                            <label for="resTotal">Total Marks</label>
+                            <input id="resTotal" type="number" min="1" value="100">
+                        </div>
+                        <button class="primary-button" id="resLoad">Load Students</button>
+                    </div>
+                    <div id="resList"></div>
+                </article>
+            </section>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom" style="border-top:0;">
+            <p>© <span id="year"></span> TSA International School, Rawatsar, Rajasthan. Teacher Portal.</p>
+            <p><a href="index.html">Home</a> · <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,13 +1,48 @@
-/* Admin login */
+/* School staff & portal login */
 (function () {
     const API = window.SCHOOL_API || "http://127.0.0.1:8000";
     const TOKEN_KEY = "tsa_admin_token";
     const USER_KEY = "tsa_admin_user";
 
-    // Already signed in? Go straight to the dashboard.
-    if (localStorage.getItem(TOKEN_KEY)) {
-        window.location.replace("dashboard.html");
-        return;
+    function targetFor(role) {
+        if (role === "teacher") return "../teacher.html";
+        if (role === "admissions") return "../admissions-portal.html";
+        if (role === "parent") return "../parent.html";
+        if (role === "student") return "../portal.html";
+        return "dashboard.html";
+    }
+
+    function storageFor(role) {
+        if (role === "teacher") return ["tsa_teacher_token", "tsa_teacher_user"];
+        if (role === "admissions") return ["tsa_admissions_token", "tsa_admissions_user"];
+        if (role === "parent") return ["tsa_parent_token", "tsa_parent_user"];
+        if (role === "student") return ["tsa_portal_token", "tsa_portal_user"];
+        return [TOKEN_KEY, USER_KEY];
+    }
+
+    // Already signed in? Go straight to the right place.
+    const SESSIONS = [
+        ["tsa_admin_token", "tsa_admin_user"],
+        ["tsa_teacher_token", "tsa_teacher_user"],
+        ["tsa_admissions_token", "tsa_admissions_user"],
+        ["tsa_parent_token", "tsa_parent_user"],
+        ["tsa_portal_token", "tsa_portal_user"],
+    ];
+
+    for (const [tokenKey, userKey] of SESSIONS) {
+        if (!localStorage.getItem(tokenKey)) continue;
+
+        let saved = null;
+        try {
+            saved = JSON.parse(localStorage.getItem(userKey) || "null");
+        } catch (err) {
+            saved = null;
+        }
+
+        if (saved && saved.role) {
+            window.location.replace(targetFor(saved.role));
+            return;
+        }
     }
 
     const form = document.getElementById("loginForm");
@@ -52,13 +87,19 @@
                 );
             }
 
-            if (!data || !data.user || data.user.role !== "admin") {
-                throw new Error("This account does not have admin access.");
+            if (!data || !data.user || !data.user.role) {
+                throw new Error("This account could not be signed in.");
             }
 
-            localStorage.setItem(TOKEN_KEY, data.access_token);
-            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-            window.location.replace("dashboard.html");
+            const role = data.user.role;
+            if (!["admin", "owner", "teacher", "admissions", "parent", "student"].includes(role)) {
+                throw new Error("This account does not have access to a portal.");
+            }
+
+            const [tokenKey, userKey] = storageFor(role);
+            localStorage.setItem(tokenKey, data.access_token);
+            localStorage.setItem(userKey, JSON.stringify(data.user));
+            window.location.replace(targetFor(role));
         } catch (error) {
             errorBox.textContent = error.message;
             submitBtn.disabled = false;

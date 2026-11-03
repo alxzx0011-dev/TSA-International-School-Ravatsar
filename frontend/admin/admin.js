@@ -18,10 +18,27 @@
         user = null;
     }
 
-    if (!token || !user || !["admin", "teacher"].includes(user.role)) {
+    if (!token || !user) {
         window.location.replace("index.html");
         return;
     }
+
+    if (["admissions", "parent", "student"].includes(user.role)) {
+        const target = user.role === "admissions"
+            ? "../admissions-portal.html"
+            : user.role === "parent"
+                ? "../parent.html"
+                : "../portal.html";
+        window.location.replace(target);
+        return;
+    }
+
+    if (!["admin", "owner", "teacher"].includes(user.role)) {
+        window.location.replace("index.html");
+        return;
+    }
+
+    const canManage = ["admin", "owner"].includes(user.role);
 
     const viewEl = document.getElementById("view");
     const pageTitle = document.getElementById("pageTitle");
@@ -791,7 +808,7 @@
             </div>
             <div class="card"><div id="studentsList"><p class="empty">Loading…</p></div></div>`;
 
-        const isAdmin = user.role === "admin";
+        const isAdmin = canManage;
         const addBtn = document.getElementById("addStudentBtn");
         if (!isAdmin) addBtn.remove();
 
@@ -800,7 +817,7 @@
         async function load() {
             const rows = await api("/api/students");
             document.getElementById("studentsList").innerHTML = table(
-                ["Admission No", "Name", "Class", "Roll No", "Parent", "Phone", "Login", "Status", "Actions"],
+                ["Admission No", "Name", "Class", "Roll No", "Parent", "Phone", "Student Login", "Parent Login", "Status", "Actions"],
                 rows.map((s) => `<tr>
                     <td><strong>${esc(s.admission_no)}</strong></td>
                     <td>${esc(s.full_name)}</td>
@@ -809,11 +826,13 @@
                     <td>${esc(s.parent_name || "—")}</td>
                     <td>${esc(s.parent_phone || "—")}</td>
                     <td>${esc(s.login_email || "—")}</td>
+                    <td>${esc(s.parent_login_email || s.parent_email || "—")}</td>
                     <td>${s.is_active ? badge("Active", "ok") : badge("Inactive", "bad")}</td>
                     <td><div class="filter-row">
                         ${isAdmin ? `
                             <button class="btn ghost sm" data-edit="${s.id}">Edit</button>
-                            <button class="btn ghost sm" data-reset="${s.id}">Reset Password</button>
+                            <button class="btn ghost sm" data-reset="${s.id}">Reset Student Password</button>
+                            <button class="btn ghost sm" data-parent="${s.id}">Parent Login</button>
                             <button class="btn ${s.is_active ? "danger" : "ghost"} sm" data-toggle="${s.id}">${s.is_active ? "Deactivate" : "Restore"}</button>
                         ` : "<span class='empty'>View only</span>"}
                     </div></td>
@@ -850,6 +869,27 @@
                     })
                 );
 
+                document.querySelectorAll("[data-parent]").forEach((btn) =>
+                    btn.addEventListener("click", async () => {
+                        const row = rows.find((r) => String(r.id) === btn.dataset.parent);
+                        if (!row.parent_email) {
+                            toast("Add a parent email to this student first", "error");
+                            return;
+                        }
+                        const res = await api(`/api/students/${row.id}/parent-login`, { method: "POST" });
+                        openModal(
+                            "Parent Login",
+                            `<p><strong>${esc(row.parent_name || "Parent")}</strong> — ${esc(row.full_name)} (${esc(row.class_name)})</p>
+                             <p>Share these credentials with the parent. Any previous parent password has been replaced.</p>
+                             <div class="card" style="padding:14px;">
+                                <p><strong>Email:</strong> ${esc(res.email || "—")}</p>
+                                <p><strong>Password:</strong> ${esc(res.password || "—")}</p>
+                             </div>`,
+                            `<button class="btn primary" data-close>Done</button>`
+                        );
+                    })
+                );
+
                 document.querySelectorAll("[data-toggle]").forEach((btn) =>
                     btn.addEventListener("click", async () => {
                         const row = rows.find((r) => String(r.id) === btn.dataset.toggle);
@@ -874,14 +914,25 @@
                     async (data) => {
                         const res = await api("/api/students", { method: "POST", body: data });
                         const c = res.credentials || {};
+                        const pc = res.parent_credentials || {};
+                        const parentBlock = pc.email
+                            ? `<p><strong>Parent login</strong></p>
+                               <div class="card" style="padding:14px;">
+                                  <p><strong>Email:</strong> ${esc(pc.email)}</p>
+                                  <p><strong>Password:</strong> ${esc(pc.password || "Existing password — use Reset Parent Login to set a new one.")}</p>
+                               </div>`
+                            : `<p class="empty">No parent email was provided, so no parent login was created.</p>`;
+
                         openModal(
-                            "Student Added 🎉",
+                            "Student Added",
                             `<p><strong>${esc(res.student.full_name)}</strong> (${esc(res.student.class_name)}) added.</p>
-                             <p>Login credentials — parent ko ye details dein:</p>
+                             <p><strong>Student login</strong></p>
                              <div class="card" style="padding:14px;">
                                 <p><strong>Email:</strong> ${esc(c.email || "—")}</p>
                                 <p><strong>Password:</strong> ${esc(c.password || "—")}</p>
-                             </div>`,
+                             </div>
+                             ${parentBlock}
+                             <p class="form-note">Share these credentials with the student and parent.</p>`,
                             `<button class="btn primary" data-close>Done</button>`
                         );
                         await load();
@@ -929,7 +980,7 @@
                     <button class="btn primary" id="attLoad">Load Class</button>
                 </div>
             </div>
-            <div class="card"><div id="attList"><p class="empty">Class select karke Load Class dabayein.</p></div></div>`;
+            <div class="card"><div id="attList"><p class="empty">Choose a class and date, then select Load Class.</p></div></div>`;
 
         const classes = await api("/api/classes");
         const classSel = document.getElementById("attClass");
@@ -1009,8 +1060,8 @@
        8d. Management: Fees
     --------------------------------------------------------- */
     async function renderFees() {
-        if (user.role !== "admin") {
-            viewEl.innerHTML = `<div class="card"><p class="empty">Only an admin can manage fees.</p></div>`;
+        if (!canManage) {
+            viewEl.innerHTML = `<div class="card"><p class="empty">Only an administrator or the school owner can manage fees.</p></div>`;
             return;
         }
 
@@ -1114,7 +1165,7 @@
             </div>
             <div class="card"><div id="resultsList"><p class="empty">Loading…</p></div></div>`;
 
-        const isAdmin = user.role === "admin";
+        const isAdmin = canManage;
         const classes = await api("/api/classes");
         const classSel = document.getElementById("resClass");
         classSel.innerHTML = `<option value="">All classes</option>` + classes.map((c) => `<option>${esc(c)}</option>`).join("");
@@ -1181,7 +1232,7 @@
                                 if (inp.value === "") return;
                                 marks.push({ student_id: Number(inp.dataset.marks), marks_obtained: Number(inp.value) });
                             });
-                            if (!marks.length) { toast("Kam se kam ek marks likhein", "error"); return; }
+                            if (!marks.length) { toast("Please enter marks for at least one student", "error"); return; }
                             const res = await api("/api/results/bulk", {
                                 method: "POST",
                                 body: {
@@ -1192,7 +1243,7 @@
                                 },
                             });
                             closeModal();
-                            toast(`${res.saved} students ke marks save hue ✔`);
+                            toast(`${res.saved} student result(s) saved`);
                             await load();
                         });
                     }
@@ -1201,6 +1252,117 @@
         }
 
         document.getElementById("resFilter").addEventListener("click", load);
+        await load();
+    }
+
+    /* ---------------------------------------------------------
+       8f. Accounts (owner / admin)
+    --------------------------------------------------------- */
+    const ROLE_OPTIONS = [
+        { value: "teacher", label: "Teacher" },
+        { value: "admissions", label: "Admissions Officer" },
+        { value: "owner", label: "School Owner" },
+        { value: "admin", label: "Administrator" },
+    ];
+
+    async function renderAccounts() {
+        if (!canManage) {
+            viewEl.innerHTML = `<div class="card"><p class="empty">Only an administrator or the school owner can manage accounts.</p></div>`;
+            return;
+        }
+
+        viewEl.innerHTML = `
+            <div class="page-head">
+                <div>
+                    <h2>Accounts</h2>
+                    <p>Create logins for the owner, teachers, admissions officers and parents.</p>
+                </div>
+                <button class="btn primary" id="addAccountBtn">+ Add Account</button>
+            </div>
+            <div class="card" style="margin-bottom:18px;">
+                <div class="card-body">
+                    <p class="form-note" style="margin:0;">
+                        Parent accounts are created automatically when a student is added with a parent email.
+                        Teacher, admissions and owner accounts can be created here.
+                    </p>
+                </div>
+            </div>
+            <div class="card"><div id="accountsList"><p class="empty">Loading…</p></div></div>`;
+
+        async function load() {
+            const rows = await api("/api/admin/users");
+
+            document.getElementById("accountsList").innerHTML = table(
+                ["Name", "Email", "Role", "Status", "Created", "Actions"],
+                rows.map((u) => `<tr>
+                    <td><strong>${esc(u.full_name)}</strong></td>
+                    <td>${esc(u.email)}</td>
+                    <td>${badge(u.role, u.role === "owner" ? "ok" : u.role === "admin" ? "ok" : "")}</td>
+                    <td>${u.is_active ? badge("Active", "ok") : badge("Inactive", "bad")}</td>
+                    <td>${fmtDate(u.created_at)}</td>
+                    <td><div class="filter-row">
+                        <button class="btn ghost sm" data-reset-user="${u.id}">Reset Password</button>
+                        ${u.id === user.id
+                            ? "<span class='empty'>This is you</span>"
+                            : `<button class="btn ${u.is_active ? "danger" : "ghost"} sm" data-toggle-user="${u.id}" data-active="${u.is_active}">
+                                ${u.is_active ? "Deactivate" : "Activate"}
+                               </button>`}
+                    </div></td>
+                </tr>`)
+            );
+
+            document.querySelectorAll("[data-reset-user]").forEach((btn) =>
+                btn.addEventListener("click", async () => {
+                    const row = rows.find((r) => String(r.id) === btn.dataset.resetUser);
+                    const password = window.prompt(`New password for ${row.full_name} (min 8 characters):`);
+                    if (!password) return;
+                    if (password.length < 8) {
+                        toast("Password must be at least 8 characters", "error");
+                        return;
+                    }
+                    await api(`/api/admin/users/${row.id}`, { method: "PUT", body: { password } });
+                    toast(`Password reset for ${row.full_name}`);
+                })
+            );
+
+            document.querySelectorAll("[data-toggle-user]").forEach((btn) =>
+                btn.addEventListener("click", async () => {
+                    const id = btn.dataset.toggleUser;
+                    const isActive = btn.dataset.active === "true";
+                    if (isActive) {
+                        if (!window.confirm("Deactivate this account? The user will not be able to sign in.")) return;
+                        await api(`/api/admin/users/${id}`, { method: "DELETE" });
+                        toast("Account deactivated");
+                    } else {
+                        await api(`/api/admin/users/${id}`, { method: "PUT", body: { is_active: true } });
+                        toast("Account activated");
+                    }
+                    await load();
+                })
+            );
+        }
+
+        document.getElementById("addAccountBtn").addEventListener("click", () =>
+            openForm(
+                {
+                    title: "Add Account",
+                    fields: [
+                        { name: "full_name", label: "Full Name", required: true },
+                        { name: "email", label: "Email", type: "email", required: true },
+                        { name: "password", label: "Password (min 8 characters)", type: "password", required: true },
+                        { name: "role", label: "Role", type: "select", options: ROLE_OPTIONS, required: true },
+                    ],
+                    submitLabel: "Create Account",
+                },
+                { role: "teacher" },
+                async (data) => {
+                    await api("/api/admin/users", { method: "POST", body: data });
+                    toast("Account created");
+                    await load();
+                }
+            )
+        );
+
         await load();
     }
 
@@ -1220,6 +1382,7 @@
         attendance: renderAttendance,
         fees: renderFees,
         results: renderResults,
+        accounts: renderAccounts,
         settings: renderSettings,
     };
 
@@ -1236,6 +1399,7 @@
         attendance: "Attendance",
         fees: "Fees",
         results: "Exam Results",
+        accounts: "Accounts",
         settings: "Site Settings",
     };
 
@@ -1288,7 +1452,7 @@
     document.getElementById("avatar").textContent = initials(user.full_name);
     document.getElementById("userName").textContent = user.full_name;
     document.querySelector(".sidebar-brand small").textContent =
-        user.role === "teacher" ? "Teacher Panel" : "Admin Panel";
+        user.role === "teacher" ? "Teacher Panel" : user.role === "owner" ? "Owner Panel" : "Admin Panel";
 
     if (user.role === "teacher") {
         const allowed = ["dashboard", "students", "attendance", "results"];

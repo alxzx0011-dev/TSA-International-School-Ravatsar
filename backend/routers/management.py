@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
 
 from deps import AdminUser, CurrentUser, DbSession, StaffUser
-from model import Attendance, ExamResult, FeeRecord, Notice, Student, User
+from model import Attendance, ExamResult, FeeRecord, Notice, ParentLink, Student, TeacherNote, User
 from schemas import (
     AttendanceMark,
     AttendanceOut,
@@ -51,6 +51,14 @@ def student_dict(db: DbSession, student: Student) -> dict:
         user = db.get(User, student.user_id)
         email = user.email if user else None
 
+    parent_login_email = None
+    link = db.scalar(
+        select(ParentLink).where(ParentLink.student_id == student.id).limit(1)
+    )
+    if link:
+        parent_user = db.get(User, link.parent_user_id)
+        parent_login_email = parent_user.email if parent_user else None
+
     return {
         "id": student.id,
         "admission_no": student.admission_no,
@@ -62,6 +70,7 @@ def student_dict(db: DbSession, student: Student) -> dict:
         "parent_name": student.parent_name,
         "parent_phone": student.parent_phone,
         "parent_email": student.parent_email,
+        "parent_login_email": parent_login_email,
         "is_active": student.is_active,
         "login_email": email,
         "created_at": student.created_at,
@@ -105,6 +114,76 @@ def _make_login(db: DbSession, student: Student, email: Optional[str], password:
     return {"email": email, "password": password}
 
 
+def _make_parent_login(db: DbSession, student: Student, force_reset: bool = False):
+    """Create (or reset) a parent login linked by the student's parent email."""
+    email = (student.parent_email or "").strip().lower()
+    if not email:
+        return None
+
+    def link(parent: User):
+        found = db.scalar(
+            select(ParentLink).where(
+                ParentLink.parent_user_id == parent.id,
+                ParentLink.student_id == student.id,
+            )
+        )
+        if not found:
+            db.add(ParentLink(parent_user_id=parent.id, student_id=student.id))
+
+    def reset_password(parent: User):
+        password = f"Tsa{secrets.token_hex(3)}"
+        parent.password_hash = hash_password(password)
+        parent.is_active = True
+        return {"email": parent.email, "password": password}
+
+    existing = db.scalar(select(User).where(User.email == email))
+
+    if existing and existing.role == "parent":
+        link(existing)
+        if force_reset:
+            return reset_password(existing)
+        return {"email": existing.email, "password": None, "existing": True}
+
+    # The parent email may already belong to a student or staff login. In that
+    # case create a dedicated parent login instead of overwriting that account.
+    if existing:
+        safe_no = "".join(
+            ch for ch in student.admission_no.lower() if ch.isalnum() or ch in "-"
+        )
+        fallback_email = f"parent.{safe_no}@tsarawatsar.school"
+        parent = db.scalar(select(User).where(User.email == fallback_email))
+
+        if parent:
+            link(parent)
+            if force_reset:
+                return reset_password(parent)
+            return {"email": parent.email, "password": None, "existing": True}
+
+        password = f"Tsa{secrets.token_hex(3)}"
+        parent = User(
+            full_name=student.parent_name or f"Parent of {student.full_name}",
+            email=fallback_email,
+            password_hash=hash_password(password),
+            role="parent",
+        )
+        db.add(parent)
+        db.flush()
+        link(parent)
+        return {"email": fallback_email, "password": password}
+
+    password = f"Tsa{secrets.token_hex(3)}"
+    parent = User(
+        full_name=student.parent_name or f"Parent of {student.full_name}",
+        email=email,
+        password_hash=hash_password(password),
+        role="parent",
+    )
+    db.add(parent)
+    db.flush()
+    link(parent)
+    return {"email": email, "password": password}
+
+
 # ---------------------------------------------------------------------------
 # Classes (helper for frontend dropdowns)
 # ---------------------------------------------------------------------------
@@ -137,6 +216,14 @@ def list_students(
     return [student_dict(db, s) for s in students]
 
 
+@router.get("/students/{student_id}")
+def get_student(student_id: int, db: DbSession, _: StaffUser):
+    student = db.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student_dict(db, student)
+
+
 @router.post("/students", response_model=StudentCreateResponse, status_code=status.HTTP_201_CREATED)
 def create_student(data: StudentCreate, db: DbSession, _: AdminUser):
     admission_no = _unique_admission_no(db, data.admission_no or "ADM")
@@ -156,11 +243,16 @@ def create_student(data: StudentCreate, db: DbSession, _: AdminUser):
     db.flush()
 
     credentials = _make_login(db, student, data.login_email, data.login_password)
+    parent_credentials = _make_parent_login(db, student)
 
     db.commit()
     db.refresh(student)
 
-    return {"student": student_dict(db, student), "credentials": credentials}
+    return {
+        "student": student_dict(db, student),
+        "credentials": credentials,
+        "parent_credentials": parent_credentials,
+    }
 
 
 @router.put("/students/{student_id}", response_model=StudentOut)
@@ -179,9 +271,30 @@ def update_student(student_id: int, data: StudentUpdate, db: DbSession, _: Admin
     if login_email or login_password:
         _make_login(db, student, login_email, login_password)
 
+    if student.parent_email:
+        _make_parent_login(db, student)
+
     db.commit()
     db.refresh(student)
     return student_dict(db, student)
+
+
+@router.post("/students/{student_id}/parent-login")
+def create_parent_login(student_id: int, db: DbSession, _: AdminUser):
+    """Create or reset the parent login for a student."""
+    student = db.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    credentials = _make_parent_login(db, student, force_reset=True)
+    if not credentials:
+        raise HTTPException(
+            status_code=400,
+            detail="Add a parent email to this student first",
+        )
+
+    db.commit()
+    return credentials
 
 
 @router.delete("/students/{student_id}")
@@ -420,7 +533,7 @@ def list_results(
 
 
 @router.post("/results", status_code=status.HTTP_201_CREATED)
-def create_result(data: ResultCreate, db: DbSession, _: AdminUser):
+def create_result(data: ResultCreate, db: DbSession, _: StaffUser):
     student = db.get(Student, data.student_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -442,7 +555,7 @@ def create_result(data: ResultCreate, db: DbSession, _: AdminUser):
 
 
 @router.post("/results/bulk")
-def create_results_bulk(data: ResultBulk, db: DbSession, _: AdminUser):
+def create_results_bulk(data: ResultBulk, db: DbSession, _: StaffUser):
     saved = 0
     for item in data.marks:
         if item.marks_obtained > data.total_marks:
@@ -498,6 +611,19 @@ def portal_me(user: CurrentUser, db: DbSession):
         select(Notice).where(Notice.is_active.is_(True)).order_by(Notice.created_at.desc()).limit(10)
     ).all()
 
+    notes = db.scalars(
+        select(TeacherNote)
+        .where(
+            (TeacherNote.student_id == student.id)
+            | (
+                TeacherNote.student_id.is_(None)
+                & (TeacherNote.class_name == student.class_name)
+            )
+        )
+        .order_by(TeacherNote.created_at.desc())
+        .limit(30)
+    ).all()
+
     return {
         "profile": student_dict(db, student),
         "attendance": {
@@ -535,5 +661,16 @@ def portal_me(user: CurrentUser, db: DbSession):
         "notices": [
             {"id": n.id, "title": n.title, "message": n.message, "created_at": n.created_at}
             for n in notices
+        ],
+        "notes": [
+            {
+                "id": n.id,
+                "title": n.title,
+                "message": n.message,
+                "category": n.category,
+                "teacher_name": n.teacher_name,
+                "created_at": n.created_at,
+            }
+            for n in notes
         ],
     }

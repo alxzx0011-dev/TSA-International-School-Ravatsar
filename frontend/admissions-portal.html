@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+
+    <meta name="description" content="Admissions portal — review and process admission applications for TSA International School, Rawatsar.">
+
+    <title>Admissions Portal | TSA International School, Rawatsar, Rajasthan</title>
+
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="admissions-portal.js" defer></script>
+</head>
+<body class="portal-page">
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <img src="assets/tsa-logo-256.jpg" alt="TSA International School logo" class="logo-icon logo-img">
+            <span>
+                TSA International
+                <small>ADMISSIONS PORTAL</small>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="logoutBtn" hidden>Logout</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Login -->
+        <section class="portal-login" id="loginView">
+            <div class="portal-login-card">
+                <span class="eyebrow">ADMISSIONS PORTAL</span>
+                <h1>Welcome, Admissions Officer</h1>
+                <p>Sign in to review and process admission applications.</p>
+
+                <form id="loginForm" novalidate>
+                    <label for="email">School Email</label>
+                    <input id="email" type="email" placeholder="admissions@tsarawatsar.school" required>
+
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="••••••••" required>
+
+                    <button type="submit" class="primary-button" id="loginBtn">Login →</button>
+                    <p class="form-status" id="loginMessage"></p>
+                </form>
+
+                <p class="portal-hint">
+                    Admissions accounts are created by the school administrator.
+                    Please contact the school office if you cannot sign in.
+                </p>
+            </div>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="portal-dash" id="dashView" hidden>
+            <div class="portal-hero">
+                <div>
+                    <span class="eyebrow">ADMISSIONS DASHBOARD</span>
+                    <h1 id="welcomeName">Admissions</h1>
+                    <p id="profileLine"></p>
+                </div>
+                <button class="secondary-button" id="refreshBtn">Refresh</button>
+            </div>
+
+            <div class="portal-stats" id="admissionStats"></div>
+
+            <article class="portal-card">
+                <h2>Applications</h2>
+
+                <div class="portal-toolbar">
+                    <div class="grow">
+                        <label for="appSearch">Search</label>
+                        <input id="appSearch" type="search" placeholder="Student, parent, email or phone">
+                    </div>
+                    <div>
+                        <label for="appStatus">Status</label>
+                        <select id="appStatus">
+                            <option value="">All statuses</option>
+                            <option value="new">New</option>
+                            <option value="reviewing">Reviewing</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <button class="primary-button" id="appFilterBtn">Apply Filter</button>
+                </div>
+
+                <div id="applicationsList"></div>
+            </article>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom" style="border-top:0;">
+            <p>© <span id="year"></span> TSA International School, Rawatsar, Rajasthan. Admissions Portal.</p>
+            <p><a href="index.html">Home</a> · <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>

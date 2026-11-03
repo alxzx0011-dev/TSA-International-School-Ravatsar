@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 
-from deps import AdminUser, DbSession, require_admin
+from deps import AdminUser, AdmissionsUser, DbSession, require_admissions
 from ratelimit import rate_limit
 from model import Admission
 from schemas import AdmissionCreate, AdmissionOut, AdmissionStatusUpdate
@@ -28,7 +28,7 @@ def create_admission(data: AdmissionCreate, db: DbSession):
 @router.get(
     "",
     response_model=list[AdmissionOut],
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admissions)],
 )
 def list_admissions(
     db: DbSession,
@@ -54,7 +54,7 @@ def update_admission(
     admission_id: int,
     data: AdmissionStatusUpdate,
     db: DbSession,
-    _: AdminUser,
+    _: AdmissionsUser,
 ):
     admission = db.get(Admission, admission_id)
 

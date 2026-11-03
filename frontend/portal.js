@@ -35,6 +35,15 @@
         return `<span class="pill ${map[status] || ""}">${esc(status)}</span>`;
     }
 
+    function gradeFor(percent) {
+        if (percent >= 80) return "A+";
+        if (percent >= 70) return "A";
+        if (percent >= 60) return "B";
+        if (percent >= 50) return "C";
+        if (percent >= 40) return "D";
+        return "F";
+    }
+
     async function getJSON(path, options = {}) {
         const token = localStorage.getItem(TOKEN_KEY);
         try {
@@ -94,7 +103,7 @@
         }
 
         if (data.user && data.user.role !== "student") {
-            setMessage("This is the student portal. Staff should use the admin panel.", "error");
+            setMessage("This is the student portal. Parents should use the parent portal and staff should use the school login.", "error");
             $("loginBtn").disabled = false;
             return;
         }
@@ -204,12 +213,16 @@
             const totalMax = rows.reduce((s, r) => s + r.total_marks, 0);
             const pct = totalMax ? Math.round((totalObt / totalMax) * 100) : 0;
             return `
-                <h3 class="exam-title">${esc(exam)} <span class="pill ${pct >= 60 ? "ok" : pct >= 40 ? "warn" : "bad"}">${pct}%</span></h3>
+                <h3 class="exam-title">
+                    ${esc(exam)}
+                    <span class="pill ${pct >= 60 ? "ok" : pct >= 40 ? "warn" : "bad"}">${pct}%</span>
+                    <button class="secondary-button" data-pdf-exam="${esc(exam)}">Download PDF</button>
+                </h3>
                 <table class="portal-table">
                     <thead><tr><th>Subject</th><th>Marks</th><th>%</th><th>Grade</th></tr></thead>
                     <tbody>
                         ${rows.map((r) => {
-                            const g = r.percent >= 80 ? "A+" : r.percent >= 70 ? "A" : r.percent >= 60 ? "B" : r.percent >= 50 ? "C" : r.percent >= 40 ? "D" : "F";
+                            const g = gradeFor(r.percent);
                             return `<tr>
                                 <td>${esc(r.subject)}</td>
                                 <td>${r.marks_obtained} / ${r.total_marks}</td>
@@ -223,6 +236,23 @@
 
         $("resultsList").innerHTML = examBlocks || `<p class="empty-note">Results have not been announced yet.</p>`;
 
+        document.querySelectorAll("[data-pdf-exam]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                printResult(data.profile, btn.dataset.pdfExam, exams[btn.dataset.pdfExam]);
+            });
+        });
+
+        $("notesList").innerHTML = (data.notes || []).length
+            ? data.notes.map((n) => `
+                    <div class="notice-row">
+                        <div>
+                            <h4>${esc(n.title)} <span class="pill">${esc(n.category)}</span></h4>
+                            <p>${esc(n.message)}</p>
+                            <p class="muted">By ${esc(n.teacher_name)} · ${fmtDate(n.created_at)}</p>
+                        </div>
+                    </div>`).join("")
+            : `<p class="empty-note">No teacher notes yet.</p>`;
+
         $("noticesList").innerHTML = data.notices.length
             ? data.notices.map((n) => `
                     <div class="notice-row">
@@ -233,6 +263,97 @@
                         <span class="muted">${fmtDate(n.created_at)}</span>
                     </div>`).join("")
             : `<p class="empty-note">There are no notices.</p>`;
+    }
+
+    /* ---------------- result PDF ---------------- */
+    function printResult(profile, examName, rows) {
+        if (!rows || !rows.length) return;
+
+        const totalObt = rows.reduce((s, r) => s + r.marks_obtained, 0);
+        const totalMax = rows.reduce((s, r) => s + r.total_marks, 0);
+        const pct = totalMax ? Math.round((totalObt / totalMax) * 100) : 0;
+        const grade = gradeFor(pct);
+        const logo = new URL("assets/tsa-logo-256.jpg", window.location.href).href;
+
+        const win = window.open("", "_blank");
+        if (!win) {
+            window.alert("Please allow pop-ups to download the result PDF.");
+            return;
+        }
+
+        win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${esc(profile.full_name)} — ${esc(examName)} Result</title>
+<style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #21362e; margin: 40px; }
+    .head { display: flex; align-items: center; gap: 16px; border-bottom: 3px solid #0b3d2e; padding-bottom: 16px; }
+    .head img { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; }
+    .head h1 { margin: 0; font-size: 22px; color: #0b3d2e; }
+    .head p { margin: 4px 0 0; color: #6b8177; font-size: 13px; }
+    h2 { text-align: center; margin: 28px 0 18px; letter-spacing: 1px; }
+    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 20px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #cfe0d8; padding: 9px 10px; text-align: left; font-size: 14px; }
+    th { background: #e3f2eb; color: #0b3d2e; }
+    .total { margin-top: 18px; font-size: 15px; }
+    .total strong { color: #0b3d2e; }
+    .sign { margin-top: 60px; display: flex; justify-content: space-between; font-size: 13px; color: #6b8177; }
+    .sign span { border-top: 1px solid #6b8177; padding-top: 6px; width: 180px; text-align: center; }
+    @media print { body { margin: 18mm; } }
+</style>
+</head>
+<body>
+    <div class="head">
+        <img src="${logo}" alt="School logo">
+        <div>
+            <h1>TSA International School, Rawatsar</h1>
+            <p>Court Road, near Panchayat Samiti, Rawatsar, Hanumangarh, Rajasthan 335524</p>
+        </div>
+    </div>
+
+    <h2>REPORT CARD</h2>
+
+    <div class="meta">
+        <div><strong>Student:</strong> ${esc(profile.full_name)}</div>
+        <div><strong>Class:</strong> ${esc(profile.class_name)}</div>
+        <div><strong>Admission No:</strong> ${esc(profile.admission_no)}</div>
+        <div><strong>Roll No:</strong> ${esc(profile.roll_no || "—")}</div>
+        <div><strong>Examination:</strong> ${esc(examName)}</div>
+        <div><strong>Date:</strong> ${new Date().toLocaleDateString("en-GB")}</div>
+    </div>
+
+    <table>
+        <thead><tr><th>Subject</th><th>Marks Obtained</th><th>Total Marks</th><th>Percentage</th><th>Grade</th></tr></thead>
+        <tbody>
+            ${rows.map((r) => `
+                <tr>
+                    <td>${esc(r.subject)}</td>
+                    <td>${r.marks_obtained}</td>
+                    <td>${r.total_marks}</td>
+                    <td>${r.percent}%</td>
+                    <td>${gradeFor(r.percent)}</td>
+                </tr>`).join("")}
+        </tbody>
+    </table>
+
+    <p class="total">
+        <strong>Total:</strong> ${totalObt} / ${totalMax} &nbsp; · &nbsp;
+        <strong>Percentage:</strong> ${pct}% &nbsp; · &nbsp;
+        <strong>Grade:</strong> ${grade}
+    </p>
+
+    <div class="sign">
+        <span>Class Teacher</span>
+        <span>Principal</span>
+        <span>Parent / Guardian</span>
+    </div>
+</body>
+</html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 400);
     }
 
     /* ---------------- start ---------------- */

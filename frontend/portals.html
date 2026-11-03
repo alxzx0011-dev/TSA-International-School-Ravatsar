@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Portal access for students, parents, teachers, admissions officers and the school owner at TSA International School, Rawatsar.">
+
+    <title>Portals | TSA International School, Rawatsar, Rajasthan</title>
+
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="portal-page">
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <img src="assets/tsa-logo-256.jpg" alt="TSA International School logo" class="logo-icon logo-img">
+            <span>
+                TSA International
+                <small>SCHOOL PORTALS</small>
+            </span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Back to Website</a>
+            <a href="admissions.html" class="nav-button">Apply Now</a>
+        </nav>
+    </header>
+
+    <main class="portal-dash">
+        <div class="portal-hero">
+            <div>
+                <span class="eyebrow">ONE SCHOOL · ONE SYSTEM</span>
+                <h1>School Portals</h1>
+                <p>Choose your portal. Login details are issued by the school office.</p>
+            </div>
+            <a href="contact.html" class="secondary-button">Need Help?</a>
+        </div>
+
+        <div class="portal-grid">
+            <article class="portal-card">
+                <h2>Student Portal</h2>
+                <p class="muted">Check your profile, attendance, fees, exam results, teacher notes and school notices.</p>
+                <p class="muted">Download your report card as a PDF for any exam.</p>
+                <a href="portal.html" class="primary-button">Student Login →</a>
+            </article>
+
+            <article class="portal-card">
+                <h2>Parent Portal</h2>
+                <p class="muted">See your child's profile, attendance, fees and results, read teacher notes and send a complaint directly to the teacher.</p>
+                <p class="muted">Download your child's marksheet as a PDF.</p>
+                <a href="parent.html" class="primary-button">Parent Login →</a>
+            </article>
+
+            <article class="portal-card">
+                <h2>Teacher Portal</h2>
+                <p class="muted">Manage your students, post notes and homework, reply to parent complaints, mark attendance and enter exam results.</p>
+                <a href="teacher.html" class="primary-button">Teacher Login →</a>
+            </article>
+
+            <article class="portal-card">
+                <h2>Admissions Portal</h2>
+                <p class="muted">Review admission applications, search applicants and update each application's status.</p>
+                <a href="admissions-portal.html" class="primary-button">Admissions Login →</a>
+            </article>
+
+            <article class="portal-card">
+                <h2>Owner &amp; Admin</h2>
+                <p class="muted">Full school dashboard for the school owner and administrator: students, staff accounts, fees, results, admissions and website content.</p>
+                <a href="admin/index.html" class="primary-button">Staff Login →</a>
+            </article>
+        </div>
+
+        <p class="portal-hint" style="margin-top:26px; max-width:100%;">
+            Forgot your password or need a login? Contact the school office at
+            <a href="contact.html">the contact page</a>.
+        </p>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom" style="border-top:0;">
+            <p>© <span id="year"></span> TSA International School, Rawatsar, Rajasthan.</p>
+            <p><a href="index.html">Home</a> · <a href="admissions.html">Admissions</a> · <a href="contact.html">Contact</a></p>
+        </div>
+    </footer>
+
+    <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

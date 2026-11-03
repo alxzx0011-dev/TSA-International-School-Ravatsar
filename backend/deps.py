@@ -49,7 +49,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def require_admin(user: CurrentUser) -> User:
-    if user.role != "admin":
+    if user.role not in ("admin", "owner"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
@@ -59,8 +59,8 @@ def require_admin(user: CurrentUser) -> User:
 
 
 def require_staff(user: CurrentUser) -> User:
-    """Admin or teacher can use the management system."""
-    if user.role not in ("admin", "teacher"):
+    """Admin, owner or teacher can use the management system."""
+    if user.role not in ("admin", "owner", "teacher"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Staff access required",
@@ -69,5 +69,17 @@ def require_staff(user: CurrentUser) -> User:
     return user
 
 
+def require_admissions(user: CurrentUser) -> User:
+    """Admin, owner or an admissions officer can review applications."""
+    if user.role not in ("admin", "owner", "admissions"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admissions access required",
+        )
+
+    return user
+
+
 AdminUser = Annotated[User, Depends(require_admin)]
 StaffUser = Annotated[User, Depends(require_staff)]
+AdmissionsUser = Annotated[User, Depends(require_admissions)]
