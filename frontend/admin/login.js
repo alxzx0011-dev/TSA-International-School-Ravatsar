@@ -3,6 +3,7 @@
     const API = window.SCHOOL_API || "http://127.0.0.1:8000";
     const TOKEN_KEY = "tsa_admin_token";
     const USER_KEY = "tsa_admin_user";
+    const REQUEST_TIMEOUT = 30000;
 
     function targetFor(role) {
         if (role === "teacher") return "../teacher.html";
@@ -64,9 +65,13 @@
         submitBtn.disabled = true;
         submitBtn.textContent = "Signing in…";
 
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
         try {
             const response = await fetch(`${API}/auth/login`, {
                 method: "POST",
+                signal: controller.signal,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
@@ -101,9 +106,13 @@
             localStorage.setItem(userKey, JSON.stringify(data.user));
             window.location.replace(targetFor(role));
         } catch (error) {
-            errorBox.textContent = error.message;
+            errorBox.textContent = error.name === "AbortError"
+                ? "The server is taking too long to respond. Please check the database connection and try again."
+                : error.message;
             submitBtn.disabled = false;
             submitBtn.textContent = "Sign In";
+        } finally {
+            clearTimeout(timer);
         }
     });
 })();

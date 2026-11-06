@@ -7,6 +7,7 @@
     "use strict";
 
     const API = window.SCHOOL_API || "http://127.0.0.1:8000";
+    const REQUEST_TIMEOUT = 30000;
 
     /* ---------------------------------------------------------
        1. Helpers
@@ -49,14 +50,19 @@
     }
 
     async function getJSON(path) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
         try {
             const response = await fetch(API + path, {
+                signal: controller.signal,
                 headers: { Accept: "application/json" },
             });
             if (!response.ok) return null;
             return await response.json();
         } catch (err) {
             return null;
+        } finally {
+            clearTimeout(timer);
         }
     }
 
@@ -181,9 +187,13 @@
             if (button) button.disabled = true;
             showMessage(status, "Sending…");
 
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
             try {
                 const response = await fetch(API + endpoint, {
                     method: "POST",
+                    signal: controller.signal,
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(buildBody(new FormData(form))),
                 });
@@ -202,8 +212,15 @@
                 }
                 showMessage(status, apiError(data), "error");
             } catch (err) {
-                showMessage(status, "Network problem. Is the backend running?", "error");
+                showMessage(
+                    status,
+                    err && err.name === "AbortError"
+                        ? "The server is taking too long to respond. Please try again."
+                        : "Network problem. Is the backend running?",
+                    "error"
+                );
             } finally {
+                clearTimeout(timer);
                 if (button) button.disabled = false;
             }
         });

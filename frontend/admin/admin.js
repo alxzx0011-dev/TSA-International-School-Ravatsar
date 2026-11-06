@@ -8,6 +8,7 @@
     const API = window.SCHOOL_API || "http://127.0.0.1:8000";
     const TOKEN_KEY = "tsa_admin_token";
     const USER_KEY = "tsa_admin_user";
+    const REQUEST_TIMEOUT = 30000;
 
     const token = localStorage.getItem(TOKEN_KEY);
     let user = null;
@@ -135,14 +136,22 @@
         }
 
         let response;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
         try {
             response = await fetch(API + path, {
                 method: opts.method || "GET",
+                signal: controller.signal,
                 headers,
                 body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
             });
         } catch (err) {
+            if (err && err.name === "AbortError") {
+                throw new Error("The server is taking too long to respond. Please try again.");
+            }
             throw new Error(`Cannot reach the server at ${API}. Is the backend running?`);
+        } finally {
+            clearTimeout(timer);
         }
 
         if (response.status === 401) {

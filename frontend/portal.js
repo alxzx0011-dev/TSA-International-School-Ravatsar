@@ -7,6 +7,7 @@
     const API = window.SCHOOL_API || "";
     const TOKEN_KEY = "tsa_portal_token";
     const USER_KEY = "tsa_portal_user";
+    const REQUEST_TIMEOUT = 30000;
 
     const $ = (id) => document.getElementById(id);
 
@@ -46,9 +47,12 @@
 
     async function getJSON(path, options = {}) {
         const token = localStorage.getItem(TOKEN_KEY);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
         try {
             const res = await fetch(API + path, {
                 ...options,
+                signal: controller.signal,
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -68,6 +72,8 @@
         } catch (err) {
             console.error(path, err);
             return null;
+        } finally {
+            clearTimeout(timer);
         }
     }
 
@@ -97,7 +103,7 @@
         });
 
         if (!data) {
-            setMessage("Login failed — incorrect email or password.", "error");
+            setMessage("Login failed or the server timed out. Check your email, password and internet connection.", "error");
             $("loginBtn").disabled = false;
             return;
         }

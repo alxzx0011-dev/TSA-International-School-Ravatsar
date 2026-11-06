@@ -26,7 +26,11 @@ engine_kwargs = {
 
 # Fail fast instead of hanging forever when the database is unreachable.
 if DATABASE_URL.startswith("postgresql"):
-    engine_kwargs["connect_args"] = {"connect_timeout": 10}
+    engine_kwargs["connect_args"] = {
+        "connect_timeout": 10,
+        # Stop any single SQL statement from hanging the login request forever.
+        "options": "-c statement_timeout=20000",
+    }
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
 
