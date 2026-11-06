@@ -1,10 +1,10 @@
 """Admin user management: create staff, owner, admissions and parent accounts."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
-from deps import DbSession, require_admin
+from deps import AdminUser, DbSession, require_admin
 from model import User
 from schemas import ManagedUserCreate, ManagedUserOut, ManagedUserUpdate
 from security import hash_password
@@ -14,6 +14,30 @@ router = APIRouter(
     tags=["Admin users"],
     dependencies=[Depends(require_admin)],
 )
+
+
+def _active_admin_count(db: DbSession) -> int:
+    return (
+        db.scalar(
+            select(func.count())
+            .select_from(User)
+            .where(
+                User.is_active.is_(True),
+                User.role.in_(("admin", "owner")),
+            )
+        )
+        or 0
+    )
+
+
+def _guard_last_admin(db: DbSession, user: User) -> None:
+    """Never allow the school to lose its last active admin/owner login."""
+    if user.role in ("admin", "owner") and user.is_active:
+        if _active_admin_count(db) <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one active administrator or owner is required",
+            )
 
 
 def _user_dict(user: User) -> dict:
@@ -58,13 +82,22 @@ def create_user(data: ManagedUserCreate, db: DbSession):
 
 
 @router.put("/{user_id}", response_model=ManagedUserOut)
-def update_user(user_id: int, data: ManagedUserUpdate, db: DbSession):
+def update_user(user_id: int, data: ManagedUserUpdate, db: DbSession, current: AdminUser):
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     fields = data.model_dump(exclude_unset=True)
     password = fields.pop("password", None)
+
+    if user_id == current.id and fields.get("is_active") is False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot deactivate your own account",
+        )
+
+    if fields.get("is_active") is False or fields.get("role") not in (None, "admin", "owner"):
+        _guard_last_admin(db, user)
 
     if fields.get("full_name"):
         user.full_name = fields["full_name"].strip()
@@ -84,10 +117,18 @@ def update_user(user_id: int, data: ManagedUserUpdate, db: DbSession):
 
 
 @router.delete("/{user_id}")
-def deactivate_user(user_id: int, db: DbSession):
+def deactivate_user(user_id: int, db: DbSession, current: AdminUser):
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    if user_id == current.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot deactivate your own account",
+        )
+
+    _guard_last_admin(db, user)
 
     user.is_active = False
     db.commit()

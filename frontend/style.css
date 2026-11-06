@@ -2114,3 +2114,53 @@ body {
     background: var(--gold);
     vertical-align: middle;
 }
+
+/* =====================================================
+   Button feedback — pressed, focus and loading states
+   ===================================================== */
+.primary-button:active,
+.secondary-button:active,
+.nav-button:active,
+.portal-tab:active,
+.filter-btn:active,
+button:active {
+    transform: translateY(1px) scale(0.97);
+    filter: brightness(1.12);
+    box-shadow:
+        0 0 0 4px rgba(201, 154, 61, 0.28),
+        0 4px 12px rgba(11, 61, 46, 0.18);
+}
+
+.primary-button:active,
+.nav-button:active {
+    background: var(--blue);
+    color: var(--white);
+}
+
+.secondary-button:active {
+    background: var(--blue-light);
+    border-color: var(--gold);
+    color: var(--navy);
+}
+
+.portal-tab:active,
+.filter-btn:active {
+    border-color: var(--gold);
+    color: var(--navy);
+}
+
+.portal-tab.active:active,
+.filter-btn.active:active {
+    background: var(--blue);
+    color: var(--white);
+}
+
+button:focus-visible,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.nav-button:focus-visible,
+.portal-tab:focus-visible,
+.filter-btn:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+}

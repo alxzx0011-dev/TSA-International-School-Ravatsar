@@ -6,11 +6,30 @@ from collections import defaultdict, deque
 from fastapi import HTTPException, Request, status
 
 
+def _client_ip(request: Request) -> str:
+    """Return the real client IP, including behind a reverse proxy.
+
+    Production proxies must overwrite X-Forwarded-For (not append an
+    untrusted client value) for this to be reliable.
+    """
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        first = forwarded.split(",", 1)[0].strip()
+        if first:
+            return first
+
+    real_ip = request.headers.get("x-real-ip", "").strip()
+    if real_ip:
+        return real_ip
+
+    return request.client.host if request.client else "unknown"
+
+
 def rate_limit(name: str, max_calls: int, window_seconds: int):
     hits: dict[str, deque] = defaultdict(deque)
 
     def dependency(request: Request) -> None:
-        client = request.client.host if request.client else "unknown"
+        client = _client_ip(request)
         now = time.monotonic()
         queue = hits[client]
 

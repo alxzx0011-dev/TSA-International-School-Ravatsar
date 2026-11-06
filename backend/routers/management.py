@@ -265,14 +265,33 @@ def update_student(student_id: int, data: StudentUpdate, db: DbSession, _: Admin
     login_email = fields.pop("login_email", None)
     login_password = fields.pop("login_password", None)
 
+    old_parent_email = (student.parent_email or "").strip().lower()
+
     for key, value in fields.items():
         setattr(student, key, value)
 
     if login_email or login_password:
         _make_login(db, student, login_email, login_password)
 
+    new_parent_email = (student.parent_email or "").strip().lower()
+
     if student.parent_email:
-        _make_parent_login(db, student)
+        parent_credentials = _make_parent_login(db, student)
+        keep = {
+            (parent_credentials or {}).get("email", "").strip().lower()
+        }
+    else:
+        keep = set()
+
+    # Remove links that point at the old parent when the parent email changed,
+    # so the previous parent can no longer see this student's records.
+    if old_parent_email != new_parent_email or not new_parent_email:
+        for link in db.scalars(
+            select(ParentLink).where(ParentLink.student_id == student.id)
+        ).all():
+            parent = db.get(User, link.parent_user_id)
+            if not parent or (parent.email or "").strip().lower() not in keep:
+                db.delete(link)
 
     db.commit()
     db.refresh(student)
@@ -541,34 +560,84 @@ def create_result(data: ResultCreate, db: DbSession, _: StaffUser):
     if data.marks_obtained > data.total_marks:
         raise HTTPException(status_code=400, detail="Marks cannot exceed total marks")
 
-    db.add(
-        ExamResult(
-            student_id=student.id,
-            exam_name=data.exam_name.strip(),
-            subject=data.subject.strip(),
-            marks_obtained=data.marks_obtained,
-            total_marks=data.total_marks,
+    exam_name = data.exam_name.strip()
+    subject = data.subject.strip()
+
+    existing = db.scalar(
+        select(ExamResult).where(
+            ExamResult.student_id == student.id,
+            func.lower(ExamResult.exam_name) == exam_name.lower(),
+            func.lower(ExamResult.subject) == subject.lower(),
         )
     )
+
+    if existing:
+        existing.exam_name = exam_name
+        existing.subject = subject
+        existing.marks_obtained = data.marks_obtained
+        existing.total_marks = data.total_marks
+    else:
+        db.add(
+            ExamResult(
+                student_id=student.id,
+                exam_name=exam_name,
+                subject=subject,
+                marks_obtained=data.marks_obtained,
+                total_marks=data.total_marks,
+            )
+        )
+
     db.commit()
     return {"ok": True, "detail": f"Marks saved for {student.full_name}"}
 
 
 @router.post("/results/bulk")
 def create_results_bulk(data: ResultBulk, db: DbSession, _: StaffUser):
+    exam_name = data.exam_name.strip()
+    subject = data.subject.strip()
     saved = 0
+
+    student_ids = {item.student_id for item in data.marks}
+
+    valid_ids = set(
+        db.scalars(select(Student.id).where(Student.id.in_(student_ids))).all()
+    ) if student_ids else set()
+
+    existing_rows = (
+        db.scalars(
+            select(ExamResult).where(
+                ExamResult.student_id.in_(valid_ids),
+                func.lower(ExamResult.exam_name) == exam_name.lower(),
+                func.lower(ExamResult.subject) == subject.lower(),
+            )
+        ).all()
+        if valid_ids
+        else []
+    )
+    existing_map = {row.student_id: row for row in existing_rows}
+
     for item in data.marks:
+        if item.student_id not in valid_ids:
+            continue
         if item.marks_obtained > data.total_marks:
             continue
-        db.add(
-            ExamResult(
-                student_id=item.student_id,
-                exam_name=data.exam_name.strip(),
-                subject=data.subject.strip(),
-                marks_obtained=item.marks_obtained,
-                total_marks=data.total_marks,
+
+        existing = existing_map.get(item.student_id)
+        if existing:
+            existing.exam_name = exam_name
+            existing.subject = subject
+            existing.marks_obtained = item.marks_obtained
+            existing.total_marks = data.total_marks
+        else:
+            db.add(
+                ExamResult(
+                    student_id=item.student_id,
+                    exam_name=exam_name,
+                    subject=subject,
+                    marks_obtained=item.marks_obtained,
+                    total_marks=data.total_marks,
+                )
             )
-        )
         saved += 1
 
     db.commit()
@@ -614,6 +683,7 @@ def portal_me(user: CurrentUser, db: DbSession):
     notes = db.scalars(
         select(TeacherNote)
         .where(
+            TeacherNote.visible_to_parent.is_(True),
             (TeacherNote.student_id == student.id)
             | (
                 TeacherNote.student_id.is_(None)

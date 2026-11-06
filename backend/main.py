@@ -1,11 +1,14 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import TimeoutError as DatabaseTimeoutError
 
 import model  # noqa: F401  (registers all SQLAlchemy models)
-from database import Base, engine
+from database import init_db
 from routers import (
     admissions,
     auth,
@@ -19,7 +22,7 @@ from routers import (
 )
 
 # Create any missing tables in Supabase on startup
-Base.metadata.create_all(bind=engine)
+init_db()
 
 # Set ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com in
 # backend/.env for production. Defaults to "*" for local development.
@@ -65,6 +68,18 @@ app.include_router(settings.admin)
 @app.head("/health")
 def health_check():
     return {"status": "healthy"}
+
+
+@app.exception_handler(OperationalError)
+@app.exception_handler(DatabaseTimeoutError)
+async def database_unavailable(request: Request, exc: Exception):
+    """Return a clean 503 instead of dropping the connection when the DB is down."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "The school database is temporarily unavailable. Please try again."
+        },
+    )
 
 
 # Serve the whole website (including /admin) from the same backend, so the

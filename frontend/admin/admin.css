@@ -850,3 +850,21 @@ textarea {
         gap: 3px;
     }
 }
+
+/* ---------- Button feedback: pressed + focus ---------- */
+.btn:active,
+.nav-item:active,
+.login-back:active,
+button:active {
+    transform: translateY(1px) scale(0.98);
+    filter: brightness(1.1);
+    box-shadow: 0 0 0 4px rgba(242, 177, 52, 0.24);
+}
+
+.btn:focus-visible,
+.nav-item:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+}
