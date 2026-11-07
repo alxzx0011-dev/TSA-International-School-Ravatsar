@@ -166,6 +166,22 @@ For a school in Rajasthan the best regions are:
 The free plan allows two active projects, so the old project can stay online
 while you migrate and test.
 
+**Shortcut — let the script do it**
+
+Instead of editing `.env.migrate` by hand, run the interactive helper:
+
+```bash
+cd backend
+../school/bin/python migrate_to_nearby.py
+```
+
+It asks for the new project ref, region and database password (hidden input),
+finds the working pooler host, shows the latency of both projects, copies every
+row, verifies the row counts and writes `backend/.env.render` containing the new
+`DATABASE_URL` ready to paste into Render. Nothing is changed until you confirm.
+
+The manual steps below do exactly the same thing.
+
 **Step 2 — copy the data**
 
 Open `backend/.env.migrate` (create it, it is git-ignored) and add both
