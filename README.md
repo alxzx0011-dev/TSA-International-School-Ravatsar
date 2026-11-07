@@ -142,6 +142,27 @@ outbound IPv6, use the **Supabase connection pooler** URL (port `6543`) for
 `DATABASE_URL` instead of the direct connection URL (port `5432`). Both work
 with the app; the pooler is usually the safer choice on shared hosting.
 
+### Render checklist (if the site is slow)
+
+1. **Use the Supabase pooler URL** in Render's `DATABASE_URL`:
+   - Supabase Dashboard → Project Settings → Database → Connection string
+   - Choose **Connection pooling / Transaction** mode
+   - Copy the URI and add `+psycopg` after `postgresql`, e.g.
+     `postgresql+psycopg://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require`
+2. **Keep the free instance awake.** Render free web services sleep after
+   inactivity, so the first request can take 50+ seconds. Create a free
+   UptimeRobot/cron-job.org monitor that calls `/api/health` every 5 minutes.
+3. **Use the closest region.** Keep the Render region and the Supabase region
+   as close as possible.
+4. **Redeploy after changing environment variables.**
+5. If login still times out, upgrade the Render instance or move the backend to
+   a small VPS / Railway / Fly.io. The app is a standard FastAPI + Uvicorn
+   process and runs anywhere Python 3.12 is available.
+
+The app already enables GZip compression, static-asset caching, connection
+timeouts and a 20-second SQL statement timeout, so slow connections fail with a
+clear message instead of hanging forever.
+
 ### Health check
 
 Use `/api/health` (or `/health`). It returns:

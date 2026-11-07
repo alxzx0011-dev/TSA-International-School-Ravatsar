@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import OperationalError
@@ -47,6 +48,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Compress JSON/HTML responses so slow mobile connections load faster.
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
+
+@app.middleware("http")
+async def cache_static_assets(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+
+    if path.startswith("/assets/") or path.endswith(
+        (".css", ".js", ".jpg", ".jpeg", ".png", ".svg", ".webp", ".ico", ".woff2")
+    ):
+        response.headers["Cache-Control"] = "public, max-age=600"
+
+    return response
 
 app.include_router(auth.router)
 app.include_router(admissions.router)

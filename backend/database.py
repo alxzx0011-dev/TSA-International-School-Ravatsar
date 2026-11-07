@@ -26,11 +26,19 @@ engine_kwargs = {
 
 # Fail fast instead of hanging forever when the database is unreachable.
 if DATABASE_URL.startswith("postgresql"):
-    engine_kwargs["connect_args"] = {
+    connect_args = {
         "connect_timeout": 10,
         # Stop any single SQL statement from hanging the login request forever.
         "options": "-c statement_timeout=20000",
     }
+
+    # Supabase's connection pooler (PgBouncer) does not support server-side
+    # prepared statements. Disable them when a pooler URL is used.
+    is_pooler = "pooler.supabase.com" in DATABASE_URL or ":6543" in DATABASE_URL
+    if is_pooler and "psycopg2" not in DATABASE_URL:
+        connect_args["prepare_threshold"] = None
+
+    engine_kwargs["connect_args"] = connect_args
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
 
