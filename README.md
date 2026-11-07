@@ -142,6 +142,80 @@ outbound IPv6, use the **Supabase connection pooler** URL (port `6543`) for
 `DATABASE_URL` instead of the direct connection URL (port `5432`). Both work
 with the app; the pooler is usually the safer choice on shared hosting.
 
+### Move Supabase to a nearby region (biggest speed win)
+
+Every database query has to travel from the app server to the database and back.
+If the Supabase project is in a distant region, each query can take hundreds of
+milliseconds and a page that runs a few queries feels very slow. Hosting the
+database in a nearby region is the single biggest speed improvement for this
+project.
+
+For a school in Rajasthan the best regions are:
+
+| Service | Recommended region |
+|---|---|
+| Supabase | **Mumbai** (`ap-south-1`) or Singapore (`ap-southeast-1`) |
+| Render | **Singapore** (the closest region Render offers) |
+
+**Step 1 — create the new project**
+
+1. Supabase Dashboard → **New project**.
+2. Region: **Mumbai** (`ap-south-1`).
+3. Save the database password somewhere safe.
+
+The free plan allows two active projects, so the old project can stay online
+while you migrate and test.
+
+**Step 2 — copy the data**
+
+Open `backend/.env.migrate` (create it, it is git-ignored) and add both
+connection strings using the **pooler** URL of each project (port `6543`):
+
+```bash
+SOURCE_DATABASE_URL=postgresql+psycopg://postgres.<old-ref>:<password>@aws-0-<old-region>.pooler.supabase.com:6543/postgres?sslmode=require
+TARGET_DATABASE_URL=postgresql+psycopg://postgres.<new-ref>:<password>@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+Then run:
+
+```bash
+cd backend
+set -a && . .env.migrate && set +a
+
+# compare round-trip latency of both projects
+../school/bin/python migrate_data.py --benchmark
+
+# see how much data will be copied (no writes)
+../school/bin/python migrate_data.py --dry-run
+
+# create the tables and copy every row
+../school/bin/python migrate_data.py --reset --yes
+
+# confirm both databases hold the same number of rows
+../school/bin/python migrate_data.py --verify
+```
+
+The script is safe to re-run: rows that already exist are skipped. It copies
+all tables in foreign-key order and fixes the `id` sequences afterwards.
+
+**Step 3 — point the app at the new database**
+
+Render Dashboard → your service → **Environment** → `DATABASE_URL` → paste the
+new project's pooler URL → **Save** → **Manual Deploy**.
+
+Keep `backend/.env.migrate` only until the migration is verified, then delete
+it. Never commit it.
+
+**Step 4 — verify, then keep the old project as a backup**
+
+1. Open the site and log in with the admin account.
+2. Check students, attendance, fees, results and the portals.
+3. Leave the old Supabase project untouched for a week.
+4. After that you can pause or delete it.
+
+**Rollback** — if anything looks wrong, put the old `DATABASE_URL` back in
+Render and redeploy. The old database was never modified by the script.
+
 ### Render checklist (if the site is slow)
 
 1. **Use the Supabase pooler URL** in Render's `DATABASE_URL`:
@@ -153,7 +227,7 @@ with the app; the pooler is usually the safer choice on shared hosting.
    inactivity, so the first request can take 50+ seconds. Create a free
    UptimeRobot/cron-job.org monitor that calls `/api/health` every 5 minutes.
 3. **Use the closest region.** Keep the Render region and the Supabase region
-   as close as possible.
+   as close as possible (Singapore + Mumbai/Singapore works well).
 4. **Redeploy after changing environment variables.**
 5. If login still times out, upgrade the Render instance or move the backend to
    a small VPS / Railway / Fly.io. The app is a standard FastAPI + Uvicorn

@@ -6,4 +6,8 @@ __pycache__/
 .Python
 *.log
 .env
+.env.*
+!.env.example
+!.env.migrate.example
+backend/.env.migrate
 .DS_Store
