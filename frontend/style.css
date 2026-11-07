@@ -1930,7 +1930,9 @@ body {
     color: var(--white);
 }
 
-.portal-section[hidden] {
+.portal-section[hidden],
+.portal-login[hidden],
+.portal-dash[hidden] {
     display: none;
 }
 

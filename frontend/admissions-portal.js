@@ -110,6 +110,7 @@
         localStorage.setItem(TOKEN_KEY, data.access_token);
         localStorage.setItem(USER_KEY, JSON.stringify(data.user));
         $("loginBtn").disabled = false;
+        setMessage("");
         await loadDashboard();
     }
 
