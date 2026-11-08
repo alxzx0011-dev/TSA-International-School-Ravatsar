@@ -40,10 +40,19 @@
             saved = null;
         }
 
-        if (saved && saved.role) {
-            window.location.replace(targetFor(saved.role));
-            return;
+        if (!saved || !saved.role) continue;
+        if (!["admin", "owner", "teacher", "admissions", "parent", "student"].includes(saved.role)) {
+            continue;
         }
+
+        // Only honour a token when it sits in the slot that belongs to its
+        // role. Otherwise an old teacher/student token could send this page
+        // to the dashboard, which then bounces back here — an endless loop.
+        const expectedTokenKey = storageFor(saved.role)[0];
+        if (expectedTokenKey !== tokenKey) continue;
+
+        window.location.replace(targetFor(saved.role));
+        return;
     }
 
     const form = document.getElementById("loginForm");

@@ -19,7 +19,13 @@
         user = null;
     }
 
-    if (!token || !user) {
+    if (!token) {
+        localStorage.removeItem(USER_KEY);
+        window.location.replace("index.html");
+        return;
+    }
+
+    if (!user) {
         window.location.replace("index.html");
         return;
     }
