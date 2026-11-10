@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <script src="account.js"></script>
     <script src="portal.js" defer></script>
 </head>
 <body class="portal-page">
@@ -26,6 +27,7 @@
 
         <nav class="nav-links">
             <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="changePasswordBtn" hidden>Change Password</button>
             <button class="nav-button" id="logoutBtn" hidden>Logout</button>
         </nav>
     </header>
@@ -91,6 +93,22 @@
             <article class="portal-card">
                 <h2>Teacher Notes &amp; Homework</h2>
                 <div id="notesList"></div>
+            </article>
+
+            <article class="portal-card">
+                <h2>My Timetable</h2>
+                <div id="timetableWrap"></div>
+            </article>
+
+            <article class="portal-card">
+                <h2>Homework</h2>
+                <p class="muted">Write your answer below and submit it to your teacher.</p>
+                <div id="homeworkList"></div>
+            </article>
+
+            <article class="portal-card">
+                <h2>My Leave Requests</h2>
+                <div id="leaveWrap"></div>
             </article>
 
             <article class="portal-card">

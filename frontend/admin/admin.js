@@ -623,6 +623,7 @@
                                     ).join("")}
                                 </select>
                                 <button class="btn danger sm" data-del="${a.id}">Delete</button>
+                                ${a.status === "approved" ? `<button class="btn primary sm" data-convert="${a.id}">Convert to Student</button>` : ""}
                             </div>
                         </td>
                     </tr>`
@@ -637,6 +638,37 @@
                             body: { status: select.value },
                         });
                         toast("Status updated");
+                    } catch (err) {
+                        toast(err.message, "error");
+                    }
+                });
+            });
+
+            target.querySelectorAll("[data-convert]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    if (!window.confirm("Create a student record and login accounts from this application?")) return;
+                    try {
+                        const result = await api(`/api/admissions/${btn.dataset.convert}/convert`, { method: "POST" });
+                        const c = result.credentials || {};
+                        const p = result.parent_credentials || {};
+                        openModal(
+                            "Student Created",
+                            `<p><strong>${esc(result.student.full_name)}</strong> — ${esc(result.student.class_name)}</p>
+                             <p class="empty">Admission No: ${esc(result.student.admission_no)}</p>
+                             <div class="card" style="padding:14px;">
+                                <p><strong>Student Login</strong></p>
+                                <p>Email: ${esc(c.email || "—")}</p>
+                                <p>Password: ${esc(c.password || "already exists")}</p>
+                             </div>
+                             <div class="card" style="padding:14px;margin-top:10px;">
+                                <p><strong>Parent Login</strong></p>
+                                <p>Email: ${esc(p.email || "—")}</p>
+                                <p>Password: ${esc(p.password || "already exists")}</p>
+                             </div>
+                             <p class="empty">Share these credentials with the family. Passwords can be reset from Students.</p>`,
+                            `<button type="button" class="btn primary" data-close>Done</button>`
+                        );
+                        await load();
                     } catch (err) {
                         toast(err.message, "error");
                     }
@@ -1382,6 +1414,186 @@
     }
 
     /* ---------------------------------------------------------
+       8c. Timetable
+    --------------------------------------------------------- */
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    async function renderTimetable() {
+        const classes = await api("/api/classes");
+
+        viewEl.innerHTML = `
+            <div class="page-head">
+                <div>
+                    <h2>Timetable</h2>
+                    <p>Build the weekly timetable for each class. Click a period to add or edit it.</p>
+                </div>
+                <div class="filter-row">
+                    <label for="ttClass" class="muted">Class</label>
+                    <select id="ttClass">${classes.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("")}</select>
+                    <button class="btn primary" id="ttAdd">+ Add Period</button>
+                </div>
+            </div>
+            <div class="card" id="ttMatrix"><p class="empty">Loading…</p></div>
+            <div class="card" style="margin-top:18px;"><div id="ttList"><p class="empty">Loading…</p></div></div>`;
+
+        const classSel = document.getElementById("ttClass");
+        let slotsCache = [];
+
+        function subjectCell(slot) {
+            if (!slot) return `<span class="empty">—</span>`;
+            return `<strong>${esc(slot.subject)}</strong>${slot.teacher_name ? `<span class="cell-sub">${esc(slot.teacher_name)}</span>` : ""}${slot.room ? `<span class="cell-sub">Room ${esc(slot.room)}</span>` : ""}`;
+        }
+
+        function openSlot(day, period, slot) {
+            const rows = slotsCache;
+            openForm(
+                {
+                    title: slot ? "Edit Timetable Period" : "Add Timetable Period",
+                    submitLabel: slot ? "Save Changes" : "Add Period",
+                    fields: [
+                        { name: "class_name", label: "Class", type: "select", options: classes, required: true },
+                        { name: "day_of_week", label: "Day", type: "select", options: DAYS, required: true },
+                        { name: "period", label: "Period", type: "number", min: 1, required: true },
+                        { name: "subject", label: "Subject", required: true },
+                        { name: "teacher_name", label: "Teacher" },
+                        { name: "room", label: "Room" },
+                    ],
+                },
+                slot || { class_name: classSel.value, day_of_week: day || DAYS[0], period: period || 1 },
+                async (data) => {
+                    await api("/api/timetable", { method: "POST", body: data });
+                    await load();
+                }
+            );
+        }
+
+        async function load() {
+            const cls = classSel.value;
+            const slots = await api(`/api/timetable?class_name=${encodeURIComponent(cls)}`);
+            slotsCache = Array.isArray(slots) ? slots : [];
+
+            const maxPeriod = Math.max(8, ...slotsCache.map((s) => Number(s.period || 0)));
+            const byKey = {};
+            slotsCache.forEach((s) => { byKey[`${s.day_of_week}-${s.period}`] = s; });
+
+            let matrix = `<h3>${esc(cls)} — Weekly Timetable</h3><div class="table-wrap"><table><thead><tr><th>Period</th>${DAYS.map((d) => `<th>${d}</th>`).join("")}</tr></thead><tbody>`;
+            for (let p = 1; p <= maxPeriod; p += 1) {
+                matrix += `<tr><td><strong>P${p}</strong></td>`;
+                DAYS.forEach((day) => {
+                    matrix += `<td style="cursor:pointer;" data-tt-day="${day}" data-tt-period="${p}" data-tt-id="${byKey[`${day}-${p}`]?.id || ""}">${subjectCell(byKey[`${day}-${p}`])}</td>`;
+                });
+                matrix += "</tr>";
+            }
+            matrix += "</tbody></table></div>";
+            document.getElementById("ttMatrix").innerHTML = matrix;
+
+            document.querySelectorAll("[data-tt-day]").forEach((cell) => {
+                cell.addEventListener("click", () => {
+                    const slot = slotsCache.find((s) => String(s.id) === cell.dataset.ttId) || null;
+                    openSlot(cell.dataset.ttDay, Number(cell.dataset.ttPeriod), slot);
+                });
+            });
+
+            document.getElementById("ttList").innerHTML = table(
+                ["Class", "Day", "Period", "Subject", "Teacher", "Room", "Actions"],
+                slotsCache.map((s) => `<tr>
+                    <td>${esc(s.class_name)}</td>
+                    <td>${esc(s.day_of_week)}</td>
+                    <td>${esc(s.period)}</td>
+                    <td>${esc(s.subject)}</td>
+                    <td>${esc(s.teacher_name || "—")}</td>
+                    <td>${esc(s.room || "—")}</td>
+                    <td><button class="btn danger sm" data-tt-del="${s.id}">Delete</button></td>
+                </tr>`)
+            );
+
+            document.querySelectorAll("[data-tt-del]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    if (!window.confirm("Delete this timetable period?")) return;
+                    try {
+                        await api(`/api/timetable/${btn.dataset.ttDel}`, { method: "DELETE" });
+                        toast("Period deleted");
+                        await load();
+                    } catch (err) {
+                        toast(err.message, "error");
+                    }
+                });
+            });
+        }
+
+        classSel.addEventListener("change", load);
+        document.getElementById("ttAdd").addEventListener("click", () => openSlot(DAYS[0], 1, null));
+        await load();
+    }
+
+    /* ---------------------------------------------------------
+       8d. Leave requests
+    --------------------------------------------------------- */
+    async function renderLeave() {
+        viewEl.innerHTML = `
+            <div class="page-head">
+                <div>
+                    <h2>Leave Requests</h2>
+                    <p>Leave applications submitted by parents.</p>
+                </div>
+                <div class="filter-row">
+                    <label for="leaveFilter" class="muted">Status</label>
+                    <select id="leaveFilter">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card"><div id="leaveList"><p class="empty">Loading…</p></div></div>`;
+
+        const filter = document.getElementById("leaveFilter");
+
+        async function load() {
+            const query = filter.value ? `?status=${encodeURIComponent(filter.value)}` : "";
+            const rows = await api(`/api/teacher/leave${query}`);
+            const list = Array.isArray(rows) ? rows : [];
+
+            document.getElementById("leaveList").innerHTML = table(
+                ["Student", "From", "To", "Reason", "Status", "Decided By", "Actions"],
+                list.map((r) => `<tr>
+                    <td><span class="cell-title">${esc(r.student_name || "—")}</span><span class="cell-sub">Request #${esc(r.id)}</span></td>
+                    <td>${fmtDate(r.from_date)}</td>
+                    <td>${fmtDate(r.to_date)}</td>
+                    <td style="max-width:320px;white-space:pre-wrap;">${esc(r.reason)}</td>
+                    <td>${badge(r.status, r.status === "approved" ? "approved" : r.status === "rejected" ? "rejected" : "reviewing")}</td>
+                    <td>${esc(r.decided_by || "—")}</td>
+                    <td><div class="filter-row">
+                        ${r.status === "pending" ? `
+                            <button class="btn primary sm" data-leave="${r.id}" data-decision="approved">Approve</button>
+                            <button class="btn danger sm" data-leave="${r.id}" data-decision="rejected">Reject</button>
+                        ` : `<span class="empty">No action needed</span>`}
+                    </div></td>
+                </tr>`)
+            );
+
+            document.querySelectorAll("[data-leave]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    try {
+                        await api(`/api/teacher/leave/${btn.dataset.leave}`, {
+                            method: "PUT",
+                            body: { status: btn.dataset.decision },
+                        });
+                        toast(`Leave ${btn.dataset.decision}`);
+                        await load();
+                    } catch (err) {
+                        toast(err.message, "error");
+                    }
+                });
+            });
+        }
+
+        filter.addEventListener("change", load);
+        await load();
+    }
+
+    /* ---------------------------------------------------------
        9. View switching
     --------------------------------------------------------- */
     const VIEWS = {
@@ -1397,6 +1609,8 @@
         attendance: renderAttendance,
         fees: renderFees,
         results: renderResults,
+        timetable: renderTimetable,
+        leave: renderLeave,
         accounts: renderAccounts,
         settings: renderSettings,
     };
@@ -1414,6 +1628,8 @@
         attendance: "Attendance",
         fees: "Fees",
         results: "Exam Results",
+        timetable: "Timetable",
+        leave: "Leave Requests",
         accounts: "Accounts",
         settings: "Site Settings",
     };
@@ -1460,6 +1676,10 @@
         window.location.replace("index.html");
     });
 
+    document.getElementById("changePasswordBtn").addEventListener("click", () => {
+        window.TSAOpenPasswordDialog({ api: API, tokenKey: TOKEN_KEY });
+    });
+
     document.getElementById("menuBtn").addEventListener("click", () => {
         document.getElementById("sidebar").classList.toggle("open");
     });
@@ -1470,7 +1690,7 @@
         user.role === "teacher" ? "Teacher Panel" : user.role === "owner" ? "Owner Panel" : "Admin Panel";
 
     if (user.role === "teacher") {
-        const allowed = ["dashboard", "students", "attendance", "results"];
+        const allowed = ["dashboard", "students", "attendance", "results", "timetable", "leave"];
         document.querySelectorAll(".nav-item[data-view]").forEach((btn) => {
             if (!allowed.includes(btn.dataset.view)) btn.hidden = true;
         });

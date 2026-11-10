@@ -32,7 +32,7 @@
     }
 
     function statusPill(status) {
-        const map = { present: "ok", paid: "ok", absent: "bad", unpaid: "warn", leave: "warn" };
+        const map = { present: "ok", paid: "ok", absent: "bad", unpaid: "warn", leave: "warn", pending: "warn", approved: "ok", rejected: "bad", submitted: "warn", checked: "ok" };
         return `<span class="pill ${map[status] || ""}">${esc(status)}</span>`;
     }
 
@@ -127,6 +127,7 @@
         $("dashView").hidden = true;
         $("loginView").hidden = false;
         $("logoutBtn").hidden = true;
+        $("changePasswordBtn").hidden = true;
         if (showMessage !== false) setMessage("You have been logged out.");
     }
 
@@ -143,6 +144,7 @@
         $("loginView").hidden = true;
         $("dashView").hidden = false;
         $("logoutBtn").hidden = false;
+        $("changePasswordBtn").hidden = false;
 
         const p = data.profile;
         $("welcomeName").textContent = p.full_name;
@@ -270,6 +272,107 @@
                         <span class="muted">${fmtDate(n.created_at)}</span>
                     </div>`).join("")
             : `<p class="empty-note">There are no notices.</p>`;
+
+        await Promise.all([loadHomework(), loadTimetable(), loadLeave()]);
+    }
+
+    /* ---------------- homework ---------------- */
+    async function loadHomework() {
+        const rows = await getJSON("/api/portal/homework");
+        const list = Array.isArray(rows) ? rows : [];
+
+        if (!list.length) {
+            $("homeworkList").innerHTML = `<p class="empty-note">No homework has been posted yet.</p>`;
+            return;
+        }
+
+        $("homeworkList").innerHTML = list.map((hw) => {
+            const sub = hw.submission;
+            return `
+                <div class="portal-list-item">
+                    <h4>${esc(hw.title)} ${sub ? statusPill(sub.status) : `<span class="pill warn">pending</span>`}</h4>
+                    <p>${esc(hw.message)}</p>
+                    <p class="muted">By ${esc(hw.teacher_name)} · ${fmtDate(hw.created_at)}</p>
+                    ${sub && sub.remark ? `<div class="portal-note"><strong>Teacher remark</strong>${esc(sub.remark)}</div>` : ""}
+                    <div class="portal-note" style="background:var(--light);">
+                        <label for="hw-${hw.id}" style="margin-top:0;">Your answer</label>
+                        <textarea id="hw-${hw.id}" rows="3" placeholder="Write your answer here">${esc(sub ? sub.text : "")}</textarea>
+                        <div class="portal-actions">
+                            <button class="primary-button" data-hw-submit="${hw.id}" data-hw-title="${esc(hw.title)}">${sub ? "Update Submission" : "Submit Homework"}</button>
+                        </div>
+                    </div>
+                </div>`;
+        }).join("");
+
+        document.querySelectorAll("[data-hw-submit]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const id = btn.dataset.hwSubmit;
+                const text = $("hw-" + id).value.trim();
+                if (!text) {
+                    window.alert("Please write your answer before submitting.");
+                    return;
+                }
+                btn.disabled = true;
+                btn.textContent = "Submitting…";
+                const result = await getJSON(`/api/portal/homework/${id}/submit`, {
+                    method: "POST",
+                    body: JSON.stringify({ text }),
+                });
+                btn.disabled = false;
+                if (!result) {
+                    btn.textContent = "Try Again";
+                    window.alert("Homework could not be submitted. Please try again.");
+                    return;
+                }
+                await loadHomework();
+            });
+        });
+    }
+
+    /* ---------------- timetable ---------------- */
+    async function loadTimetable() {
+        const data = await getJSON("/api/timetable/mine");
+        const groups = Array.isArray(data) ? data : [];
+        const group = groups[0];
+
+        if (!group || !group.slots.length) {
+            $("timetableWrap").innerHTML = `<p class="empty-note">Your class timetable has not been published yet.</p>`;
+            return;
+        }
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const byKey = {};
+        group.slots.forEach((s) => { byKey[`${s.day_of_week}-${s.period}`] = s; });
+        const maxPeriod = Math.max(8, ...group.slots.map((s) => Number(s.period || 0)));
+
+        let html = `<table class="portal-table"><thead><tr><th>Period</th>${days.map((d) => `<th>${d}</th>`).join("")}</tr></thead><tbody>`;
+        for (let p = 1; p <= maxPeriod; p += 1) {
+            html += `<tr><td><strong>P${p}</strong></td>`;
+            days.forEach((day) => {
+                const slot = byKey[`${day}-${p}`];
+                html += `<td>${slot ? `<strong>${esc(slot.subject)}</strong>${slot.teacher_name ? `<br><small class="muted">${esc(slot.teacher_name)}</small>` : ""}${slot.room ? `<br><small class="muted">Room ${esc(slot.room)}</small>` : ""}` : "—"}</td>`;
+            });
+            html += "</tr>";
+        }
+        html += "</tbody></table>";
+        $("timetableWrap").innerHTML = html;
+    }
+
+    /* ---------------- leave requests ---------------- */
+    async function loadLeave() {
+        const rows = await getJSON("/api/portal/leave");
+        const list = Array.isArray(rows) ? rows : [];
+
+        $("leaveWrap").innerHTML = list.length
+            ? list.map((r) => `
+                <div class="notice-row">
+                    <div>
+                        <h4>${esc(fmtDate(r.from_date))} → ${esc(fmtDate(r.to_date))} ${statusPill(r.status)}</h4>
+                        <p style="white-space:pre-wrap;">${esc(r.reason)}</p>
+                        <p class="muted">${r.decided_by ? `Decided by ${esc(r.decided_by)}` : "Waiting for the teacher"}</p>
+                    </div>
+                </div>`).join("")
+            : `<p class="empty-note">No leave requests have been sent for you.</p>`;
     }
 
     /* ---------------- result PDF ---------------- */
@@ -367,6 +470,7 @@
     $("year").textContent = new Date().getFullYear();
     $("loginForm").addEventListener("submit", login);
     $("logoutBtn").addEventListener("click", () => logout(true));
+    $("changePasswordBtn").addEventListener("click", () => window.TSAOpenPasswordDialog({ api: API, tokenKey: TOKEN_KEY }));
     $("refreshBtn").addEventListener("click", loadDashboard);
 
     if (localStorage.getItem(TOKEN_KEY)) loadDashboard();

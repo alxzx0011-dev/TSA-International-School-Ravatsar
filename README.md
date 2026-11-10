@@ -269,6 +269,22 @@ Alembic.
 
 ---
 
+## Phase 1 features
+
+These work with the existing logins — no extra accounts or API keys needed.
+
+| Feature | Who can use it | Endpoint(s) |
+|---|---|---|
+| Class timetable | Admin builds it; teachers, parents and students view it | `/api/timetable`, `/api/timetable/mine` |
+| Homework submission | Teacher posts homework; student submits; teacher checks and adds a remark | `/api/portal/homework`, `/api/teacher/homework/...` |
+| Leave applications | Parent applies; teacher or admin approves/rejects; parent and student see the status | `/api/parent/leave`, `/api/teacher/leave` |
+| Password change | Every logged-in user from the "Change Password" button | `/auth/change-password` |
+| Admission → Student | Admin approves an application, then clicks **Convert to Student** | `/api/admissions/{id}/convert` |
+
+New tables: `timetable_slots`, `homework_submissions`, `leave_requests`.
+
+---
+
 ## Roles and portals
 
 | Role | Portal |

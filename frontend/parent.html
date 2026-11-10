@@ -11,6 +11,7 @@
     <link rel="icon" href="assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <script src="account.js"></script>
     <script src="parent.js" defer></script>
 </head>
 <body class="portal-page">
@@ -26,6 +27,7 @@
 
         <nav class="nav-links">
             <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="changePasswordBtn" hidden>Change Password</button>
             <button class="nav-button" id="logoutBtn" hidden>Logout</button>
         </nav>
     </header>
@@ -71,6 +73,40 @@
             <div class="portal-stats" id="parentStats"></div>
 
             <div id="childrenWrap"></div>
+
+            <article class="portal-card">
+                <h2>Weekly Timetable</h2>
+                <div id="timetableWrap"></div>
+            </article>
+
+            <div class="portal-grid">
+                <article class="portal-card">
+                    <h2>Apply for Leave</h2>
+                    <p class="muted">Send a leave request to your child's teacher.</p>
+
+                    <form id="leaveForm" novalidate>
+                        <label for="leaveChild">Child</label>
+                        <select id="leaveChild" required></select>
+
+                        <label for="leaveFrom">From</label>
+                        <input id="leaveFrom" type="date" required>
+
+                        <label for="leaveTo">To</label>
+                        <input id="leaveTo" type="date" required>
+
+                        <label for="leaveReason">Reason</label>
+                        <textarea id="leaveReason" rows="4" placeholder="Why does your child need leave?" required></textarea>
+
+                        <button type="submit" class="primary-button" id="leaveBtn">Send Leave Request</button>
+                        <p class="form-status" id="leaveStatusMsg"></p>
+                    </form>
+                </article>
+
+                <article class="portal-card">
+                    <h2>My Leave Requests</h2>
+                    <div id="leaveList"></div>
+                </article>
+            </div>
 
             <div class="portal-grid">
                 <article class="portal-card">

@@ -34,7 +34,7 @@
     }
 
     function statusPill(status) {
-        const map = { present: "ok", paid: "ok", absent: "bad", unpaid: "warn", leave: "warn", answered: "ok", closed: "warn", open: "bad" };
+        const map = { present: "ok", paid: "ok", absent: "bad", unpaid: "warn", leave: "warn", answered: "ok", closed: "warn", open: "bad", pending: "warn", approved: "ok", rejected: "bad", submitted: "warn", checked: "ok" };
         return `<span class="pill ${map[status] || ""}">${esc(status)}</span>`;
     }
 
@@ -135,6 +135,7 @@
         $("dashView").hidden = true;
         $("loginView").hidden = false;
         $("logoutBtn").hidden = true;
+        $("changePasswordBtn").hidden = true;
         if (showMessage !== false) setMessage("You have been logged out.");
     }
 
@@ -152,6 +153,7 @@
         $("loginView").hidden = true;
         $("dashView").hidden = false;
         $("logoutBtn").hidden = false;
+        $("changePasswordBtn").hidden = false;
 
         $("welcomeName").textContent = data.parent.full_name;
         $("profileLine").textContent = `${data.parent.email} · ${data.children.length} child${data.children.length === 1 ? "" : "ren"} linked`;
@@ -161,6 +163,9 @@
         renderComplaints(data);
         renderNotices(data);
         fillComplaintSelect(data);
+        fillLeaveSelect(data);
+        loadTimetable();
+        loadLeave();
     }
 
     function renderStats(data) {
@@ -344,6 +349,113 @@
             </article>`;
     }
 
+    /* ---------------- timetable ---------------- */
+    async function loadTimetable() {
+        const data = await getJSON("/api/timetable/mine");
+        const groups = Array.isArray(data) ? data : [];
+
+        if (!groups.length) {
+            $("timetableWrap").innerHTML = `<p class="empty-note">No timetable has been published yet.</p>`;
+            return;
+        }
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        $("timetableWrap").innerHTML = groups.map((group) => {
+            if (!group.slots.length) {
+                return `<h3>${esc(group.student_name)} — ${esc(group.class_name)}</h3>
+                        <p class="empty-note">No timetable has been set for this class yet.</p>`;
+            }
+
+            const byKey = {};
+            group.slots.forEach((s) => { byKey[`${s.day_of_week}-${s.period}`] = s; });
+            const maxPeriod = Math.max(8, ...group.slots.map((s) => Number(s.period || 0)));
+
+            let html = `<h3>${esc(group.student_name)} — ${esc(group.class_name)}</h3>`;
+            html += `<table class="portal-table"><thead><tr><th>Period</th>${days.map((d) => `<th>${d}</th>`).join("")}</tr></thead><tbody>`;
+            for (let p = 1; p <= maxPeriod; p += 1) {
+                html += `<tr><td><strong>P${p}</strong></td>`;
+                days.forEach((day) => {
+                    const slot = byKey[`${day}-${p}`];
+                    html += `<td>${slot ? `<strong>${esc(slot.subject)}</strong>${slot.teacher_name ? `<br><small class="muted">${esc(slot.teacher_name)}</small>` : ""}${slot.room ? `<br><small class="muted">Room ${esc(slot.room)}</small>` : ""}` : "—"}</td>`;
+                });
+                html += "</tr>";
+            }
+            html += "</tbody></table>";
+            return html;
+        }).join("");
+    }
+
+    /* ---------------- leave applications ---------------- */
+    function fillLeaveSelect(data) {
+        $("leaveChild").innerHTML = data.children
+            .map((child) => `<option value="${child.profile.id}">${esc(child.profile.full_name)} — ${esc(child.profile.class_name)}</option>`)
+            .join("");
+    }
+
+    function setLeaveMessage(text, kind) {
+        const el = $("leaveStatusMsg");
+        el.textContent = text || "";
+        el.className = "form-status" + (kind ? " " + kind : "");
+    }
+
+    async function submitLeave(event) {
+        event.preventDefault();
+
+        const studentId = Number($("leaveChild").value);
+        const fromDate = $("leaveFrom").value;
+        const toDate = $("leaveTo").value;
+        const reason = $("leaveReason").value.trim();
+
+        if (!studentId || !fromDate || !toDate || !reason) {
+            setLeaveMessage("Please choose your child, both dates and a reason.", "error");
+            return;
+        }
+
+        if (toDate < fromDate) {
+            setLeaveMessage("The 'To' date cannot be before the 'From' date.", "error");
+            return;
+        }
+
+        $("leaveBtn").disabled = true;
+        setLeaveMessage("Sending…");
+
+        const result = await getJSON("/api/parent/leave", {
+            method: "POST",
+            body: JSON.stringify({ student_id: studentId, from_date: fromDate, to_date: toDate, reason }),
+        });
+
+        $("leaveBtn").disabled = false;
+
+        if (!result) {
+            setLeaveMessage("The leave request could not be sent. Please try again.", "error");
+            return;
+        }
+
+        $("leaveForm").reset();
+        setLeaveMessage("Leave request sent to the teacher.", "success");
+        await loadLeave();
+    }
+
+    async function loadLeave() {
+        const rows = await getJSON("/api/parent/leave");
+        const list = Array.isArray(rows) ? rows : [];
+
+        $("leaveList").innerHTML = list.length
+            ? list.map((r) => `
+                <div class="notice-row">
+                    <div>
+                        <h4>${esc(r.student_name || "Student")} ${statusPill(r.status)}</h4>
+                        <p style="white-space:pre-wrap;">${esc(r.reason)}</p>
+                        <p class="muted">
+                            ${fmtDate(r.from_date)} → ${fmtDate(r.to_date)}
+                            ${r.decided_by ? ` · Decided by ${esc(r.decided_by)}` : " · Waiting for the teacher"}
+                        </p>
+                    </div>
+                </div>`).join("")
+            : `<p class="empty-note">You have not applied for leave yet.</p>`;
+    }
+
     function renderComplaints(data) {
         $("complaintsList").innerHTML = data.complaints.length
             ? data.complaints.map((c) => `
@@ -514,8 +626,10 @@
     $("year").textContent = new Date().getFullYear();
     $("loginForm").addEventListener("submit", login);
     $("logoutBtn").addEventListener("click", () => logout(true));
+    $("changePasswordBtn").addEventListener("click", () => window.TSAOpenPasswordDialog({ api: API, tokenKey: TOKEN_KEY }));
     $("refreshBtn").addEventListener("click", loadDashboard);
     $("complaintForm").addEventListener("submit", submitComplaint);
+    $("leaveForm").addEventListener("submit", submitLeave);
 
     if (localStorage.getItem(TOKEN_KEY)) loadDashboard();
 })();

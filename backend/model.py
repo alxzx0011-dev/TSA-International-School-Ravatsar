@@ -229,3 +229,64 @@ class ParentLink(Base):
     parent_user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ---------------------------------------------------------------------------
+# Timetable, homework submissions, leave applications
+# ---------------------------------------------------------------------------
+class TimetableSlot(Base):
+    """One subject in a class timetable (class + day + period is unique)."""
+
+    __tablename__ = "timetable_slots"
+    __table_args__ = (
+        UniqueConstraint(
+            "class_name", "day_of_week", "period", name="uq_timetable_slot"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_name = Column(String(50), nullable=False, index=True)
+    day_of_week = Column(String(10), nullable=False, index=True)  # Monday..Saturday
+    period = Column(Integer, nullable=False)
+    subject = Column(String(120), nullable=False)
+    teacher_name = Column(String(150), nullable=True)
+    room = Column(String(50), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class HomeworkSubmission(Base):
+    """A student's answer for a homework note posted by a teacher."""
+
+    __tablename__ = "homework_submissions"
+    __table_args__ = (
+        UniqueConstraint("note_id", "student_id", name="uq_homework_submission"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    note_id = Column(
+        Integer, ForeignKey("teacher_notes.id"), nullable=False, index=True
+    )
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    text = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="submitted")  # submitted|checked
+    remark = Column(Text, nullable=True)
+    checked_by = Column(String(150), nullable=True)
+    submitted_at = Column(DateTime(timezone=True), server_default=func.now())
+    checked_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class LeaveRequest(Base):
+    """A leave application sent by a parent for one child."""
+
+    __tablename__ = "leave_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    parent_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    from_date = Column(Date, nullable=False)
+    to_date = Column(Date, nullable=False)
+    reason = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="pending")  # pending|approved|rejected
+    decided_by = Column(String(150), nullable=True)
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

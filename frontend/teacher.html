@@ -12,6 +12,7 @@
     <link rel="icon" href="assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <script src="account.js"></script>
     <script src="teacher.js" defer></script>
 </head>
 <body class="portal-page">
@@ -27,6 +28,7 @@
 
         <nav class="nav-links">
             <a href="index.html">Back to Website</a>
+            <button class="nav-button" id="changePasswordBtn" hidden>Change Password</button>
             <button class="nav-button" id="logoutBtn" hidden>Logout</button>
         </nav>
     </header>
@@ -76,6 +78,8 @@
                 <button class="portal-tab" data-tab="complaints">Parent Complaints</button>
                 <button class="portal-tab" data-tab="attendance">Attendance</button>
                 <button class="portal-tab" data-tab="results">Exam Results</button>
+                <button class="portal-tab" data-tab="timetable">Timetable</button>
+                <button class="portal-tab" data-tab="leave">Leave Requests</button>
             </nav>
 
             <!-- Overview -->
@@ -164,6 +168,17 @@
                         <div id="notesList"></div>
                     </article>
                 </div>
+
+                <article class="portal-card" id="homeworkPanel" hidden style="margin-top:18px;">
+                    <div class="portal-hero" style="margin-bottom:12px;">
+                        <div>
+                            <span class="eyebrow">HOMEWORK</span>
+                            <h2 id="homeworkTitle" style="margin:4px 0 0;">Submissions</h2>
+                        </div>
+                        <button class="secondary-button" id="closeHomeworkBtn">Close</button>
+                    </div>
+                    <div id="homeworkBody"></div>
+                </article>
             </section>
 
             <!-- Complaints -->
@@ -229,6 +244,40 @@
                         <button class="primary-button" id="resLoad">Load Students</button>
                     </div>
                     <div id="resList"></div>
+                </article>
+            </section>
+            <!-- Timetable -->
+            <section class="portal-section" data-panel="timetable" hidden>
+                <article class="portal-card">
+                    <h2>Class Timetable</h2>
+                    <div class="portal-toolbar">
+                        <div>
+                            <label for="ttViewClass">Class</label>
+                            <select id="ttViewClass"></select>
+                        </div>
+                        <button class="primary-button" id="ttViewLoad">Load Timetable</button>
+                    </div>
+                    <div id="ttViewBody"></div>
+                </article>
+            </section>
+
+            <!-- Leave Requests -->
+            <section class="portal-section" data-panel="leave" hidden>
+                <article class="portal-card">
+                    <h2>Parent Leave Requests</h2>
+                    <div class="portal-toolbar">
+                        <div>
+                            <label for="leaveStatus">Status</label>
+                            <select id="leaveStatus">
+                                <option value="pending">Pending</option>
+                                <option value="">All</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <button class="primary-button" id="leaveLoad">Load</button>
+                    </div>
+                    <div id="teacherLeaveList"></div>
                 </article>
             </section>
         </section>

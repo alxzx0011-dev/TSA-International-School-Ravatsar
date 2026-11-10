@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from deps import AdminUser, AdmissionsUser, DbSession, require_admissions
 from ratelimit import rate_limit
-from model import Admission
+from model import Admission, Student
+from routers.management import (
+    _make_login,
+    _make_parent_login,
+    _unique_admission_no,
+    student_dict,
+)
 from schemas import AdmissionCreate, AdmissionOut, AdmissionStatusUpdate
 
 router = APIRouter(prefix="/api/admissions", tags=["Admissions"])
@@ -83,3 +89,56 @@ def delete_admission(admission_id: int, db: DbSession, _: AdminUser):
 
     db.delete(admission)
     db.commit()
+
+
+@router.post("/{admission_id}/convert", status_code=status.HTTP_201_CREATED)
+def convert_admission(admission_id: int, db: DbSession, _: AdminUser):
+    """Create a student (with logins) from an approved application."""
+    admission = db.get(Admission, admission_id)
+    if admission is None:
+        raise HTTPException(status_code=404, detail="Admission not found")
+
+    if admission.status != "approved":
+        raise HTTPException(
+            status_code=400,
+            detail="Approve this application before converting it to a student",
+        )
+
+    email = (admission.parent_email or "").strip().lower()
+    duplicate_query = select(Student).where(
+        func.lower(Student.full_name) == admission.student_name.strip().lower(),
+        Student.class_name == admission.class_name,
+    )
+    if email:
+        duplicate_query = duplicate_query.where(
+            func.lower(Student.parent_email) == email
+        )
+
+    if db.scalar(duplicate_query):
+        raise HTTPException(
+            status_code=409,
+            detail="A student with this name and class already exists",
+        )
+
+    student = Student(
+        admission_no=_unique_admission_no(db, f"ADM-{admission.id}"),
+        full_name=admission.student_name.strip(),
+        class_name=admission.class_name.strip(),
+        parent_name=admission.parent_name,
+        parent_phone=admission.phone,
+        parent_email=email or None,
+    )
+    db.add(student)
+    db.flush()
+
+    credentials = _make_login(db, student, None, None)
+    parent_credentials = _make_parent_login(db, student)
+
+    db.commit()
+    db.refresh(student)
+
+    return {
+        "student": student_dict(db, student),
+        "credentials": credentials,
+        "parent_credentials": parent_credentials,
+    }

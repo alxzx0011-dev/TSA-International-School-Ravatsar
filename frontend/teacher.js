@@ -35,7 +35,7 @@
     }
 
     function statusPill(status) {
-        const map = { present: "ok", paid: "ok", answered: "ok", open: "bad", closed: "warn", leave: "warn", absent: "bad" };
+        const map = { present: "ok", paid: "ok", answered: "ok", open: "bad", closed: "warn", leave: "warn", absent: "bad", pending: "warn", approved: "ok", rejected: "bad", submitted: "warn", checked: "ok" };
         return `<span class="pill ${map[status] || ""}">${esc(status)}</span>`;
     }
 
@@ -134,6 +134,7 @@
         $("dashView").hidden = true;
         $("loginView").hidden = false;
         $("logoutBtn").hidden = true;
+        $("changePasswordBtn").hidden = true;
         if (showMessage !== false) setMessage("loginMessage", "You have been logged out.");
     }
 
@@ -145,6 +146,8 @@
         complaints: loadComplaints,
         attendance: prepareAttendance,
         results: prepareResults,
+        timetable: prepareTimetable,
+        leave: loadLeave,
     };
 
     function switchTab(name) {
@@ -176,6 +179,7 @@
         $("loginView").hidden = true;
         $("dashView").hidden = false;
         $("logoutBtn").hidden = false;
+        $("changePasswordBtn").hidden = false;
         $("welcomeName").textContent = user.full_name;
         $("profileLine").textContent = `${user.email} · ${user.role === "teacher" ? "Teacher" : user.role === "owner" ? "School Owner" : "Administrator"}`;
 
@@ -349,6 +353,7 @@
                         ${n.visible_to_parent ? "" : " · Hidden from parents"}
                     </p>
                     <div class="portal-actions">
+                        ${n.category === "homework" ? `<button class="primary-button" data-homework="${n.id}" data-homework-title="${esc(n.title)}">View Submissions</button>` : ""}
                         <button class="secondary-button" data-delete-note="${n.id}">Delete</button>
                     </div>
                 </div>`).join("")
@@ -361,6 +366,10 @@
                 if (!ok) return;
                 await loadNotes();
             });
+        });
+
+        document.querySelectorAll("[data-homework]").forEach((btn) => {
+            btn.addEventListener("click", () => openHomework(btn.dataset.homework, btn.dataset.homeworkTitle));
         });
     }
 
@@ -417,6 +426,126 @@
                 }
 
                 await loadComplaints();
+            });
+        });
+    }
+
+    /* ---------------- timetable ---------------- */
+    function prepareTimetable() {
+        if ($("ttViewClass").options.length) return;
+        $("ttViewClass").innerHTML = state.classes
+            .map((c) => `<option value="${esc(c)}">${esc(c)}</option>`)
+            .join("");
+        $("ttViewBody").innerHTML = `<p class="portal-empty">Choose a class and select Load Timetable.</p>`;
+    }
+
+    async function loadTimetable() {
+        const cls = $("ttViewClass").value;
+        if (!cls) return;
+
+        const rows = await getJSON(`/api/timetable?class_name=${encodeURIComponent(cls)}`);
+        const slots = Array.isArray(rows) ? rows : [];
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        if (!slots.length) {
+            $("ttViewBody").innerHTML = `<p class="portal-empty">No timetable has been set for ${esc(cls)} yet. Please ask the admin office.</p>`;
+            return;
+        }
+
+        const byKey = {};
+        slots.forEach((s) => { byKey[`${s.day_of_week}-${s.period}`] = s; });
+        const maxPeriod = Math.max(8, ...slots.map((s) => Number(s.period || 0)));
+
+        let html = `<table class="portal-table"><thead><tr><th>Period</th>${days.map((d) => `<th>${d}</th>`).join("")}</tr></thead><tbody>`;
+        for (let p = 1; p <= maxPeriod; p += 1) {
+            html += `<tr><td><strong>P${p}</strong></td>`;
+            days.forEach((day) => {
+                const slot = byKey[`${day}-${p}`];
+                html += `<td>${slot ? `<strong>${esc(slot.subject)}</strong>${slot.teacher_name ? `<br><small class="muted">${esc(slot.teacher_name)}</small>` : ""}${slot.room ? `<br><small class="muted">Room ${esc(slot.room)}</small>` : ""}` : "—"}</td>`;
+            });
+            html += "</tr>";
+        }
+        html += "</tbody></table>";
+        $("ttViewBody").innerHTML = `<h3>${esc(cls)}</h3>${html}`;
+    }
+
+    /* ---------------- leave requests ---------------- */
+    async function loadLeave() {
+        const status = $("leaveStatus").value;
+        const rows = await getJSON(`/api/teacher/leave${status ? `?status=${encodeURIComponent(status)}` : ""}`);
+        const list = Array.isArray(rows) ? rows : [];
+
+        $("teacherLeaveList").innerHTML = list.length
+            ? list.map((r) => `
+                <div class="portal-list-item">
+                    <h4>${esc(r.student_name || "Student")} ${statusPill(r.status)}</h4>
+                    <p>${esc(r.reason)}</p>
+                    <p class="muted">
+                        ${fmtDate(r.from_date)} → ${fmtDate(r.to_date)}
+                        ${r.decided_by ? ` · Decided by ${esc(r.decided_by)}` : ""}
+                    </p>
+                    ${r.status === "pending" ? `
+                        <div class="portal-actions">
+                            <button class="primary-button" data-leave="${r.id}" data-decision="approved">Approve</button>
+                            <button class="secondary-button" data-leave="${r.id}" data-decision="rejected">Reject</button>
+                        </div>` : ""}
+                </div>`).join("")
+            : `<p class="portal-empty">No leave requests found.</p>`;
+
+        document.querySelectorAll("[data-leave]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const result = await getJSON(`/api/teacher/leave/${btn.dataset.leave}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ status: btn.dataset.decision }),
+                });
+                if (!result) {
+                    window.alert("The request could not be updated. Please try again.");
+                    return;
+                }
+                await loadLeave();
+            });
+        });
+    }
+
+    /* ---------------- homework submissions ---------------- */
+    async function openHomework(noteId, title) {
+        $("homeworkPanel").hidden = false;
+        $("homeworkTitle").textContent = `Submissions — ${title}`;
+        $("homeworkBody").innerHTML = `<p class="portal-empty">Loading…</p>`;
+
+        const rows = await getJSON(`/api/teacher/homework/${noteId}/submissions`);
+        const list = Array.isArray(rows) ? rows : [];
+
+        $("homeworkBody").innerHTML = list.length
+            ? list.map((s) => `
+                <div class="portal-list-item">
+                    <h4>${esc(s.student_name || "Student")} ${statusPill(s.status)}</h4>
+                    <p style="white-space:pre-wrap;">${esc(s.text)}</p>
+                    <p class="muted">Submitted ${fmtDate(s.submitted_at)}${s.remark ? ` · Remark: ${esc(s.remark)}` : ""}</p>
+                    <div class="portal-note" style="background:var(--light);">
+                        <label for="hw-remark-${s.id}" style="margin-top:0;">Remark</label>
+                        <input id="hw-remark-${s.id}" type="text" placeholder="Optional feedback" value="${esc(s.remark || "")}">
+                        <div class="portal-actions">
+                            <button class="primary-button" data-hw-check="${s.id}" data-hw-status="checked">Mark Checked</button>
+                            <button class="secondary-button" data-hw-check="${s.id}" data-hw-status="submitted">Reopen</button>
+                        </div>
+                    </div>
+                </div>`).join("")
+            : `<p class="portal-empty">No submissions yet.</p>`;
+
+        document.querySelectorAll("[data-hw-check]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const id = btn.dataset.hwCheck;
+                const remark = $("hw-remark-" + id).value.trim();
+                const result = await getJSON(`/api/teacher/homework/submissions/${id}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ status: btn.dataset.hwStatus, remark: remark || null }),
+                });
+                if (!result) {
+                    window.alert("The submission could not be updated. Please try again.");
+                    return;
+                }
+                await openHomework(noteId, title);
             });
         });
     }
@@ -567,6 +696,7 @@
     $("year").textContent = new Date().getFullYear();
     $("loginForm").addEventListener("submit", login);
     $("logoutBtn").addEventListener("click", () => logout(true));
+    $("changePasswordBtn").addEventListener("click", () => window.TSAOpenPasswordDialog({ api: API, tokenKey: TOKEN_KEY }));
     $("refreshBtn").addEventListener("click", loadDashboard);
 
     document.querySelectorAll(".portal-tab").forEach((btn) => {
@@ -587,6 +717,11 @@
     $("complaintFilterBtn").addEventListener("click", loadComplaints);
     $("attLoad").addEventListener("click", loadAttendance);
     $("resLoad").addEventListener("click", loadResultStudents);
+    $("ttViewLoad").addEventListener("click", loadTimetable);
+    $("leaveLoad").addEventListener("click", loadLeave);
+    $("closeHomeworkBtn").addEventListener("click", () => {
+        $("homeworkPanel").hidden = true;
+    });
 
     if (localStorage.getItem(TOKEN_KEY)) loadDashboard();
 })();

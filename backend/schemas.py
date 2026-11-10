@@ -536,3 +536,89 @@ class ManagedUserOut(BaseModel):
     role: str
     is_active: bool
     created_at: Optional[datetime] = None
+
+
+# ---------------------------------------------------------------------------
+# Timetable
+# ---------------------------------------------------------------------------
+DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+
+class TimetableSlotIn(BaseModel):
+    class_name: str = Field(min_length=1, max_length=50)
+    day_of_week: str = Field(min_length=3, max_length=10)
+    period: int = Field(ge=1, le=12)
+    subject: str = Field(min_length=1, max_length=120)
+    teacher_name: Optional[str] = Field(default=None, max_length=150)
+    room: Optional[str] = Field(default=None, max_length=50)
+
+    @field_validator("day_of_week")
+    @classmethod
+    def validate_day(cls, value: str) -> str:
+        value = value.strip().capitalize()
+        if value not in DAY_NAMES:
+            raise ValueError(f"day must be one of: {', '.join(DAY_NAMES)}")
+        return value
+
+
+class TimetableSlotOut(TimetableSlotIn):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+
+
+# ---------------------------------------------------------------------------
+# Homework
+# ---------------------------------------------------------------------------
+class HomeworkSubmit(BaseModel):
+    text: str = Field(min_length=1, max_length=5000)
+
+
+class HomeworkCheck(BaseModel):
+    remark: Optional[str] = Field(default=None, max_length=2000)
+    status: str = Field(default="checked", max_length=20)
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value not in {"submitted", "checked"}:
+            raise ValueError("status must be submitted or checked")
+        return value
+
+
+# ---------------------------------------------------------------------------
+# Leave applications
+# ---------------------------------------------------------------------------
+class LeaveCreate(BaseModel):
+    student_id: int
+    from_date: date
+    to_date: date
+    reason: str = Field(min_length=3, max_length=2000)
+
+    @model_validator(mode="after")
+    def check_dates(self):
+        if self.to_date < self.from_date:
+            raise ValueError("to_date cannot be before from_date")
+        return self
+
+
+class LeaveDecision(BaseModel):
+    status: str = Field(max_length=20)
+    note: Optional[str] = Field(default=None, max_length=1000)
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value not in {"approved", "rejected"}:
+            raise ValueError("status must be approved or rejected")
+        return value
+
+
+# ---------------------------------------------------------------------------
+# Self-service password change
+# ---------------------------------------------------------------------------
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)

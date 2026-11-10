@@ -16,6 +16,7 @@ from routers import (
     contact,
     content,
     dashboard,
+    features,
     management,
     portals,
     settings,
@@ -72,6 +73,7 @@ app.include_router(content.public)
 app.include_router(content.admin)
 app.include_router(dashboard.router)
 app.include_router(management.router)
+app.include_router(features.router)
 app.include_router(portals.parent)
 app.include_router(portals.teacher)
 app.include_router(users.router)

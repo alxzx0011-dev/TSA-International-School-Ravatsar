@@ -120,6 +120,7 @@
         $("dashView").hidden = true;
         $("loginView").hidden = false;
         $("logoutBtn").hidden = true;
+        $("changePasswordBtn").hidden = true;
         if (showMessage !== false) setMessage("You have been logged out.");
     }
 
@@ -142,6 +143,7 @@
         $("loginView").hidden = true;
         $("dashView").hidden = false;
         $("logoutBtn").hidden = false;
+        $("changePasswordBtn").hidden = false;
         $("welcomeName").textContent = user.full_name;
         $("profileLine").textContent = `${user.email} · ${user.role === "admissions" ? "Admissions Officer" : user.role === "owner" ? "School Owner" : "Administrator"}`;
 
@@ -238,6 +240,7 @@
     $("year").textContent = new Date().getFullYear();
     $("loginForm").addEventListener("submit", login);
     $("logoutBtn").addEventListener("click", () => logout(true));
+    $("changePasswordBtn").addEventListener("click", () => window.TSAOpenPasswordDialog({ api: API, tokenKey: TOKEN_KEY }));
     $("refreshBtn").addEventListener("click", loadApplications);
     $("appFilterBtn").addEventListener("click", renderApplications);
     $("appSearch").addEventListener("input", renderApplications);
