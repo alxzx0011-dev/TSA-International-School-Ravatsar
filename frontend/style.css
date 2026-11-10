@@ -1931,6 +1931,7 @@ body {
 }
 
 .portal-section[hidden],
+.portal-card[hidden],
 .portal-login[hidden],
 .portal-dash[hidden] {
     display: none;
