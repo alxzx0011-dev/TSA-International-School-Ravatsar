@@ -12,5 +12,3 @@ __pycache__/
 backend/.env.migrate
 .DS_Store
 
-# ZX TV is kept outside the school website (parked, not deployed)
-zx-tv/
