@@ -10,6 +10,7 @@ from sqlalchemy.exc import TimeoutError as DatabaseTimeoutError
 
 import model  # noqa: F401  (registers all SQLAlchemy models)
 from database import init_db
+from email_service import email_is_configured
 from routers import (
     admissions,
     auth,
@@ -86,7 +87,7 @@ app.include_router(settings.admin)
 @app.get("/health")
 @app.head("/health")
 def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "email_configured": email_is_configured()}
 
 
 @app.exception_handler(OperationalError)
