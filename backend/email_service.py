@@ -1,9 +1,18 @@
-"""Email delivery (SMTP) for password reset codes."""
+"""Email delivery for password reset codes.
+
+Supports:
+  * HTTP email APIs (recommended on Render): Brevo, Resend, SendGrid
+  * SMTP (works locally / on paid Render instances)
+  * EMAIL_DEV_MODE (prints the email to the server console)
+"""
 
 import html
+import json
 import os
 import smtplib
 import ssl
+import urllib.error
+import urllib.request
 from email.message import EmailMessage
 from email.utils import formataddr
 
@@ -21,20 +30,181 @@ def _flag(name: str, default: bool = False) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _provider() -> str:
+    """Pick the configured provider, with sensible auto-detection."""
+    configured = os.getenv("EMAIL_PROVIDER", "").strip().lower()
+    if configured:
+        return configured
+
+    if os.getenv("RESEND_API_KEY", "").strip():
+        return "resend"
+    if os.getenv("BREVO_API_KEY", "").strip():
+        return "brevo"
+    if os.getenv("SENDGRID_API_KEY", "").strip():
+        return "sendgrid"
+    if os.getenv("SMTP_HOST", "").strip():
+        return "smtp"
+
+    return ""
+
+
+def _api_key(provider: str) -> str:
+    return (
+        os.getenv("EMAIL_API_KEY", "").strip()
+        or os.getenv(f"{provider.upper()}_API_KEY", "").strip()
+    )
+
+
+def _sender() -> tuple[str, str]:
+    from_email = (
+        os.getenv("EMAIL_FROM", "").strip()
+        or os.getenv("SMTP_FROM", "").strip()
+        or os.getenv("SMTP_USERNAME", "").strip()
+    )
+    from_name = (
+        os.getenv("EMAIL_FROM_NAME", "").strip()
+        or os.getenv("SMTP_FROM_NAME", "").strip()
+        or SCHOOL_NAME
+    )
+
+    if not from_email:
+        raise EmailError("EMAIL_FROM is not configured")
+
+    return from_email, from_name
+
+
 def email_is_configured() -> bool:
-    return bool(os.getenv("SMTP_HOST", "").strip())
+    provider = _provider()
+    if not provider:
+        return False
+    if provider == "smtp":
+        return bool(os.getenv("SMTP_HOST", "").strip())
+    return bool(_api_key(provider)) and bool(
+        os.getenv("EMAIL_FROM", "").strip()
+        or os.getenv("SMTP_FROM", "").strip()
+        or os.getenv("SMTP_USERNAME", "").strip()
+    )
 
 
-def send_email(to_email: str, subject: str, text_body: str, html_body: str | None = None) -> None:
-    # Local testing: print the email (including the OTP) to the server console.
-    if _flag("EMAIL_DEV_MODE"):
-        print("\n" + "=" * 64)
-        print(f"[EMAIL DEV MODE] To: {to_email}")
-        print(f"Subject: {subject}")
-        print(text_body)
-        print("=" * 64 + "\n")
-        return
+def _post_json(url: str, payload: dict, headers: dict, provider: str) -> None:
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+        headers={"Content-Type": "application/json", **headers},
+    )
 
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            response.read()
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:400]
+        raise EmailError(
+            f"{provider} rejected the email ({exc.code}): {detail}"
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise EmailError(f"Could not reach {provider}: {exc.reason}") from exc
+    except Exception as exc:
+        raise EmailError(f"Could not send email through {provider}: {exc}") from exc
+
+
+def _send_brevo(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str | None,
+    from_email: str,
+    from_name: str,
+) -> None:
+    key = _api_key("brevo")
+    if not key:
+        raise EmailError("BREVO_API_KEY (or EMAIL_API_KEY) is not configured")
+
+    payload = {
+        "sender": {"email": from_email, "name": from_name},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": text_body,
+    }
+    if html_body:
+        payload["htmlContent"] = html_body
+
+    _post_json(
+        "https://api.brevo.com/v3/smtp/email",
+        payload,
+        {"api-key": key, "Accept": "application/json"},
+        "Brevo",
+    )
+
+
+def _send_resend(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str | None,
+    from_email: str,
+    from_name: str,
+) -> None:
+    key = _api_key("resend")
+    if not key:
+        raise EmailError("RESEND_API_KEY (or EMAIL_API_KEY) is not configured")
+
+    payload = {
+        "from": formataddr((from_name, from_email)),
+        "to": [to_email],
+        "subject": subject,
+        "text": text_body,
+    }
+    if html_body:
+        payload["html"] = html_body
+
+    _post_json(
+        "https://api.resend.com/emails",
+        payload,
+        {"Authorization": f"Bearer {key}", "Accept": "application/json"},
+        "Resend",
+    )
+
+
+def _send_sendgrid(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str | None,
+    from_email: str,
+    from_name: str,
+) -> None:
+    key = _api_key("sendgrid")
+    if not key:
+        raise EmailError("SENDGRID_API_KEY (or EMAIL_API_KEY) is not configured")
+
+    content = [{"type": "text/plain", "value": text_body}]
+    if html_body:
+        content.append({"type": "text/html", "value": html_body})
+
+    payload = {
+        "personalizations": [{"to": [{"email": to_email}]}],
+        "from": {"email": from_email, "name": from_name},
+        "subject": subject,
+        "content": content,
+    }
+
+    _post_json(
+        "https://api.sendgrid.com/v3/mail/send",
+        payload,
+        {"Authorization": f"Bearer {key}", "Accept": "application/json"},
+        "SendGrid",
+    )
+
+
+def _send_smtp(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str | None,
+    from_email: str,
+    from_name: str,
+) -> None:
     host = os.getenv("SMTP_HOST", "").strip()
     if not host:
         raise EmailError("SMTP_HOST is not configured")
@@ -42,8 +212,6 @@ def send_email(to_email: str, subject: str, text_body: str, html_body: str | Non
     port = int(os.getenv("SMTP_PORT", "587"))
     username = os.getenv("SMTP_USERNAME", "").strip()
     password = os.getenv("SMTP_PASSWORD", "")
-    from_email = os.getenv("SMTP_FROM", "").strip() or username or "no-reply@tsaravatsar.school"
-    from_name = os.getenv("SMTP_FROM_NAME", SCHOOL_NAME).strip() or SCHOOL_NAME
     use_ssl = _flag("SMTP_USE_SSL", False)
     use_tls = _flag("SMTP_USE_TLS", True)
 
@@ -74,7 +242,45 @@ def send_email(to_email: str, subject: str, text_body: str, html_body: str | Non
                     server.login(username, password)
                 server.send_message(message)
     except Exception as exc:
-        raise EmailError(f"Could not send email: {exc}") from exc
+        raise EmailError(f"Could not send email through SMTP: {exc}") from exc
+
+
+def send_email(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str | None = None,
+) -> None:
+    # Local testing: print the email (including the OTP) to the server console.
+    if _flag("EMAIL_DEV_MODE"):
+        print("\n" + "=" * 64)
+        print(f"[EMAIL DEV MODE] To: {to_email}")
+        print(f"Subject: {subject}")
+        print(text_body)
+        print("=" * 64 + "\n")
+        return
+
+    provider = _provider()
+    if not provider or provider == "none":
+        raise EmailError(
+            "No email provider is configured. Set EMAIL_PROVIDER and the "
+            "matching API key, or EMAIL_DEV_MODE=true for local testing."
+        )
+
+    from_email, from_name = _sender()
+
+    if provider == "brevo":
+        _send_brevo(to_email, subject, text_body, html_body, from_email, from_name)
+    elif provider == "resend":
+        _send_resend(to_email, subject, text_body, html_body, from_email, from_name)
+    elif provider == "sendgrid":
+        _send_sendgrid(to_email, subject, text_body, html_body, from_email, from_name)
+    elif provider == "smtp":
+        _send_smtp(to_email, subject, text_body, html_body, from_email, from_name)
+    else:
+        raise EmailError(
+            f"Unknown EMAIL_PROVIDER '{provider}'. Use brevo, resend, sendgrid or smtp."
+        )
 
 
 def send_password_reset_email(to_email: str, full_name: str, otp: str) -> None:

@@ -298,9 +298,41 @@ This works for every role: admin, owner, teacher, admissions, parent and student
 
 ### Email settings
 
-Add these to `backend/.env` (and to the Render environment variables):
+**Important:** Render's free tier **blocks outbound SMTP** (ports 25, 465 and
+587). On Render, use an HTTP email API instead — Brevo, Resend or SendGrid —
+or upgrade the Render service to a paid instance if you must use SMTP.
+
+#### Option A — Brevo API (recommended, free 300 emails/day)
+
+1. Create a free account at <https://www.brevo.com>.
+2. Verify your sender email (Senders, Domains & IPs → add your school Gmail).
+3. Create an API key in **SMTP & API → API Keys**.
+4. Add these to `backend/.env` or the Render environment:
 
 ```env
+EMAIL_PROVIDER=brevo
+EMAIL_API_KEY=your-brevo-api-key
+EMAIL_FROM=school@gmail.com
+EMAIL_FROM_NAME=TSA International School
+EMAIL_DEV_MODE=false
+```
+
+#### Option B — Resend API (free 3,000 emails/month)
+
+Resend requires a verified domain to send to arbitrary addresses.
+
+```env
+EMAIL_PROVIDER=resend
+EMAIL_API_KEY=re_your_resend_key
+EMAIL_FROM=noreply@yourdomain.com
+EMAIL_FROM_NAME=TSA International School
+EMAIL_DEV_MODE=false
+```
+
+#### Option C — SMTP (local development or paid Render)
+
+```env
+EMAIL_PROVIDER=smtp
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=school@gmail.com
@@ -312,15 +344,17 @@ SMTP_USE_SSL=false
 EMAIL_DEV_MODE=false
 ```
 
-**Gmail:** enable 2-Step Verification, then create an **App password**
-(Google Account → Security → App passwords) and use that 16-character value as
-`SMTP_PASSWORD`. Do not use the normal Gmail password.
-
-Any SMTP provider works (Gmail, Zoho, Brevo, Mailgun, SendGrid, etc.).
+For Gmail, enable 2-Step Verification and create an **App password**
+(Google Account → Security → App passwords). Do not use the normal Gmail
+password.
 
 **Local testing without email:** set `EMAIL_DEV_MODE=true` and the code is
 printed in the server terminal instead of being sent. Keep it `false` in
 production.
+
+If no provider is configured, the forgot-password request still returns a
+generic success message, but the server log contains an
+`EmailError ... not configured` line.
 
 ### Security behaviour
 

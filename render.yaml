@@ -19,22 +19,15 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: SMTP_HOST
+      # Render free tier blocks SMTP; use an HTTP email API (Brevo/Resend/SendGrid).
+      - key: EMAIL_PROVIDER
+        value: brevo
+      - key: EMAIL_API_KEY
         sync: false
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USERNAME
+      - key: EMAIL_FROM
         sync: false
-      - key: SMTP_PASSWORD
-        sync: false
-      - key: SMTP_FROM
-        sync: false
-      - key: SMTP_FROM_NAME
+      - key: EMAIL_FROM_NAME
         value: TSA International School
-      - key: SMTP_USE_TLS
-        value: "true"
-      - key: SMTP_USE_SSL
-        value: "false"
       - key: EMAIL_DEV_MODE
         value: "false"
       - key: ALLOWED_ORIGINS
