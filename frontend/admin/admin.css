@@ -868,3 +868,20 @@ a:focus-visible {
     outline: 3px solid var(--gold);
     outline-offset: 2px;
 }
+
+/* Forgot-password link on the school login card */
+.forgot-link {
+    background: none;
+    border: 0;
+    padding: 10px 0 0;
+    color: #0b6b4f;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.forgot-link:hover {
+    color: #084c39;
+}

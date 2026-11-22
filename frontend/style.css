@@ -2167,3 +2167,21 @@ button:focus-visible,
     outline: 3px solid var(--gold);
     outline-offset: 3px;
 }
+
+/* Forgot-password link inside login forms */
+.forgot-link {
+    background: none;
+    border: 0;
+    padding: 10px 0 0;
+    color: #0b6b4f;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.forgot-link:hover {
+    color: #084c39;
+}

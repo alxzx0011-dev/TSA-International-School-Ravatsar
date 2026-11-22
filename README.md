@@ -285,6 +285,56 @@ New tables: `timetable_slots`, `homework_submissions`, `leave_requests`.
 
 ---
 
+## Password recovery (email OTP)
+
+Forgotten passwords can be reset without admin help:
+
+1. The user clicks **Forgot password?** on any login page.
+2. They enter their registered email.
+3. The school sends a **6-digit code** that expires in **10 minutes**.
+4. They enter the code plus a new password.
+
+This works for every role: admin, owner, teacher, admissions, parent and student.
+
+### Email settings
+
+Add these to `backend/.env` (and to the Render environment variables):
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=school@gmail.com
+SMTP_PASSWORD=your-16-character-app-password
+SMTP_FROM=school@gmail.com
+SMTP_FROM_NAME=TSA International School
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+EMAIL_DEV_MODE=false
+```
+
+**Gmail:** enable 2-Step Verification, then create an **App password**
+(Google Account → Security → App passwords) and use that 16-character value as
+`SMTP_PASSWORD`. Do not use the normal Gmail password.
+
+Any SMTP provider works (Gmail, Zoho, Brevo, Mailgun, SendGrid, etc.).
+
+**Local testing without email:** set `EMAIL_DEV_MODE=true` and the code is
+printed in the server terminal instead of being sent. Keep it `false` in
+production.
+
+### Security behaviour
+
+- The API always returns the same message, so nobody can find out which emails
+  are registered.
+- Codes are stored as Argon2 hashes, never in plain text.
+- A code can be used once, expires after 10 minutes, and is blocked after 5
+  wrong attempts.
+- A new code can be requested once every 60 seconds.
+- Both endpoints are rate limited per IP.
+- The table `password_reset_otps` is created automatically on startup.
+
+---
+
 ## Roles and portals
 
 | Role | Portal |
