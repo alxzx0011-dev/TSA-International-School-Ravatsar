@@ -12,3 +12,6 @@ __pycache__/
 backend/.env.migrate
 .DS_Store
 
+
+# Business documents (proposals, quotes) — not part of the deployed site
+proposal/

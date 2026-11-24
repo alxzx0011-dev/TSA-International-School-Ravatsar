@@ -14,7 +14,7 @@
         overlay.style.cssText = [
             "position:fixed", "inset:0", "z-index:9999",
             "display:flex", "align-items:center", "justify-content:center",
-            "padding:18px", "background:rgba(6,28,22,.55)",
+            "padding:18px", "background:rgba(6,18,43,.55)",
             "backdrop-filter:blur(3px)",
         ].join(";");
 
@@ -23,56 +23,56 @@
                         border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:26px 24px;">
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
                     <div>
-                        <p style="margin:0;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#0b6b4f;">ACCOUNT RECOVERY</p>
-                        <h2 style="margin:6px 0 0;font-size:22px;color:#0b3d2e;">Reset Password</h2>
+                        <p style="margin:0;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#1e3f94;">ACCOUNT RECOVERY</p>
+                        <h2 style="margin:6px 0 0;font-size:22px;color:#0c1f45;">Reset Password</h2>
                     </div>
                     <button type="button" data-close aria-label="Close"
-                            style="border:0;background:#eef4f1;color:#31564a;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+                            style="border:0;background:#eff3fa;color:#34446a;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
                 </div>
 
                 <form id="tsaForgotForm" style="display:flex;flex-direction:column;gap:4px;margin-top:14px;">
                     <div id="tsaStepOne">
-                        <p style="margin:0 0 6px;font-size:13px;color:#5b7268;">
+                        <p style="margin:0 0 6px;font-size:13px;color:#56637f;">
                             Enter the email registered with the school. We will send a 6-digit code.
                         </p>
-                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:10px;">EMAIL</label>
+                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:10px;">EMAIL</label>
                         <input id="tsaForgotEmail" type="email" autocomplete="email" required
-                               style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;">
+                               style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;">
                         <button type="submit" id="tsaSendCode"
-                                style="margin-top:14px;padding:13px 18px;border:0;border-radius:10px;background:#0b3d2e;color:#fff;font-weight:700;cursor:pointer;">
+                                style="margin-top:14px;padding:13px 18px;border:0;border-radius:10px;background:#0c1f45;color:#fff;font-weight:700;cursor:pointer;">
                             Send Code
                         </button>
                     </div>
 
                     <div id="tsaStepTwo" hidden>
-                        <p style="margin:0 0 4px;font-size:13px;color:#5b7268;">
+                        <p style="margin:0 0 4px;font-size:13px;color:#56637f;">
                             Code sent to <strong id="tsaSentTo"></strong>. It expires in 10 minutes.
                         </p>
 
-                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:12px;">6-DIGIT CODE</label>
+                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:12px;">6-DIGIT CODE</label>
                         <input id="tsaOtp" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="one-time-code" required
-                               style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;letter-spacing:5px;font-size:18px;">
+                               style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;letter-spacing:5px;font-size:18px;">
 
-                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:12px;">NEW PASSWORD</label>
+                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:12px;">NEW PASSWORD</label>
                         <input id="tsaNewPass" type="password" minlength="8" autocomplete="new-password" required
-                               style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;">
+                               style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;">
 
-                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:12px;">CONFIRM NEW PASSWORD</label>
+                        <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:12px;">CONFIRM NEW PASSWORD</label>
                         <input id="tsaConfirmPass" type="password" minlength="8" autocomplete="new-password" required
-                               style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;">
+                               style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;">
 
                         <button type="submit" id="tsaResetBtn"
-                                style="margin-top:14px;padding:13px 18px;border:0;border-radius:10px;background:#0b3d2e;color:#fff;font-weight:700;cursor:pointer;">
+                                style="margin-top:14px;padding:13px 18px;border:0;border-radius:10px;background:#0c1f45;color:#fff;font-weight:700;cursor:pointer;">
                             Reset Password
                         </button>
 
                         <div style="display:flex;justify-content:space-between;gap:12px;margin-top:6px;">
                             <button type="button" id="tsaResendBtn"
-                                    style="border:0;background:none;color:#0b6b4f;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:6px 0;">
+                                    style="border:0;background:none;color:#1e3f94;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:6px 0;">
                                 Resend code
                             </button>
                             <button type="button" id="tsaChangeEmail"
-                                    style="border:0;background:none;color:#5b7268;font:inherit;font-size:13px;cursor:pointer;padding:6px 0;">
+                                    style="border:0;background:none;color:#56637f;font:inherit;font-size:13px;cursor:pointer;padding:6px 0;">
                                 Use a different email
                             </button>
                         </div>
@@ -109,7 +109,7 @@
     function status(text, kind) {
         const el = overlay.querySelector("#tsaForgotStatus");
         el.textContent = text || "";
-        el.style.color = kind === "error" ? "#b3261e" : kind === "ok" ? "#0b6b4f" : "#5b7268";
+        el.style.color = kind === "error" ? "#b3261e" : kind === "ok" ? "#1e3f94" : "#56637f";
     }
 
     function setBusy(button, busy, label) {
@@ -245,7 +245,7 @@
             const closeRow = document.createElement("button");
             closeRow.type = "button";
             closeRow.textContent = "Back to Sign In";
-            closeRow.style.cssText = "margin-top:14px;padding:13px 18px;border:0;border-radius:10px;background:#0b3d2e;color:#fff;font-weight:700;cursor:pointer;width:100%;";
+            closeRow.style.cssText = "margin-top:14px;padding:13px 18px;border:0;border-radius:10px;background:#0c1f45;color:#fff;font-weight:700;cursor:pointer;width:100%;";
             closeRow.addEventListener("click", close);
             overlay.querySelector("#tsaForgotForm").append(closeRow);
         } catch (err) {

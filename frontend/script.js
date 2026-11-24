@@ -483,7 +483,73 @@
     }
 
     /* ---------------------------------------------------------
-       10. Start
+       10. Motion: scroll reveals + animated counters
+    --------------------------------------------------------- */
+    function initMotion() {
+        if (!("IntersectionObserver" in window)) return;
+
+        const targets = document.querySelectorAll(
+            ".section h2, .section > p, .stat-card, .feature-card, " +
+                ".gallery-card, .welcome > p, .admission > p"
+        );
+
+        if (targets.length) {
+            const reveal = new IntersectionObserver(
+                (entries, obs) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        entry.target.classList.add("is-visible");
+                        obs.unobserve(entry.target);
+                    });
+                },
+                { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+            );
+
+            targets.forEach((el, i) => {
+                el.classList.add("reveal");
+                el.style.transitionDelay = `${(i % 3) * 90}ms`;
+                reveal.observe(el);
+            });
+        }
+
+        // Count-up animation for the statistics strip on the homepage.
+        document.querySelectorAll(".stat-card h2").forEach((el) => {
+            const match = el.textContent.trim().match(/^([\d,]+)(\D*)$/);
+            if (!match) return;
+
+            const target = Number(match[1].replace(/,/g, ""));
+            const suffix = match[2];
+            if (!target || !Number.isFinite(target)) return;
+
+            const counter = new IntersectionObserver(
+                (entries, obs) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        obs.unobserve(entry.target);
+
+                        const start = performance.now();
+                        const duration = 1500;
+
+                        const tick = (now) => {
+                            const t = Math.min(1, (now - start) / duration);
+                            const eased = 1 - Math.pow(1 - t, 3);
+                            el.textContent =
+                                Math.round(target * eased).toLocaleString("en-IN") + suffix;
+                            if (t < 1) requestAnimationFrame(tick);
+                        };
+
+                        requestAnimationFrame(tick);
+                    });
+                },
+                { threshold: 0.5 }
+            );
+
+            counter.observe(el);
+        });
+    }
+
+    /* ---------------------------------------------------------
+       11. Start
     --------------------------------------------------------- */
     loadSettings();
     loadNotices();
@@ -491,4 +557,5 @@
     loadEvents();
     loadGallery();
     loadFaculty();
+    initMotion();
 })();

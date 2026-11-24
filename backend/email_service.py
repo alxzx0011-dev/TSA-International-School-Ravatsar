@@ -302,18 +302,18 @@ Court Road, near Panchayat Samiti, Rawatsar, Hanumangarh, Rajasthan 335524
 
     html_body = f"""<!DOCTYPE html>
 <html>
-<body style="margin:0;padding:24px;background:#f4f7f5;font-family:Arial,Helvetica,sans-serif;color:#21362e;">
-  <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #dce8e2;border-radius:16px;padding:30px;">
-    <p style="margin:0 0 6px;font-size:11px;letter-spacing:1.4px;font-weight:800;color:#0b6b4f;">TSA INTERNATIONAL SCHOOL</p>
-    <h2 style="margin:0 0 16px;font-size:22px;color:#0b3d2e;">Password reset code</h2>
+<body style="margin:0;padding:24px;background:#f3f6fb;font-family:Arial,Helvetica,sans-serif;color:#16233f;">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #dbe3f1;border-radius:16px;padding:30px;">
+    <p style="margin:0 0 6px;font-size:11px;letter-spacing:1.4px;font-weight:800;color:#1e3f94;">TSA INTERNATIONAL SCHOOL</p>
+    <h2 style="margin:0 0 16px;font-size:22px;color:#0c1f45;">Password reset code</h2>
     <p style="margin:0 0 18px;font-size:14px;line-height:1.6;">Hello {name}, we received a request to reset your password for the school website.</p>
-    <div style="margin:0 0 18px;padding:18px;text-align:center;background:#e9f5ef;border-radius:12px;">
-      <div style="font-size:32px;letter-spacing:8px;font-weight:800;color:#0b3d2e;">{otp}</div>
+    <div style="margin:0 0 18px;padding:18px;text-align:center;background:#fdeee2;border-radius:12px;">
+      <div style="font-size:32px;letter-spacing:8px;font-weight:800;color:#0c1f45;">{otp}</div>
     </div>
     <p style="margin:0 0 10px;font-size:14px;line-height:1.6;">This code expires in <strong>10 minutes</strong> and can be used only once.</p>
-    <p style="margin:0;font-size:13px;color:#6b8177;line-height:1.6;">If you did not request this, you can safely ignore this email.</p>
+    <p style="margin:0;font-size:13px;color:#5a6782;line-height:1.6;">If you did not request this, you can safely ignore this email.</p>
   </div>
-  <p style="max-width:520px;margin:14px auto 0;font-size:11px;color:#8a9b92;text-align:center;">
+  <p style="max-width:520px;margin:14px auto 0;font-size:11px;color:#8794ab;text-align:center;">
     TSA International School, Rawatsar, Rajasthan 335524
   </p>
 </body>

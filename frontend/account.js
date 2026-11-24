@@ -22,7 +22,7 @@
         overlay.style.cssText = [
             "position:fixed", "inset:0", "z-index:9999",
             "display:flex", "align-items:center", "justify-content:center",
-            "padding:18px", "background:rgba(6,28,22,.55)",
+            "padding:18px", "background:rgba(6,18,43,.55)",
             "backdrop-filter:blur(3px)",
         ].join(";");
 
@@ -31,26 +31,26 @@
                         box-shadow:0 24px 70px rgba(0,0,0,.28);padding:26px 24px;">
                 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
                     <div>
-                        <p style="margin:0;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#0b6b4f;">ACCOUNT SECURITY</p>
-                        <h2 style="margin:6px 0 0;font-size:22px;color:#0b3d2e;">Change Password</h2>
+                        <p style="margin:0;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#1e3f94;">ACCOUNT SECURITY</p>
+                        <h2 style="margin:6px 0 0;font-size:22px;color:#0c1f45;">Change Password</h2>
                     </div>
                     <button type="button" data-close aria-label="Close"
-                            style="border:0;background:#eef4f1;color:#31564a;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+                            style="border:0;background:#eff3fa;color:#34446a;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
                 </div>
 
                 <form id="tsaPasswordForm" style="display:flex;flex-direction:column;gap:4px;margin-top:16px;">
-                    <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:10px;">CURRENT PASSWORD</label>
+                    <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:10px;">CURRENT PASSWORD</label>
                     <input id="tsaCurrentPassword" type="password" autocomplete="current-password" required
-                           style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;">
-                    <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:12px;">NEW PASSWORD</label>
+                           style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;">
+                    <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:12px;">NEW PASSWORD</label>
                     <input id="tsaNewPassword" type="password" autocomplete="new-password" minlength="8" required
-                           style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;">
-                    <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0b3d2e;margin-top:12px;">CONFIRM NEW PASSWORD</label>
+                           style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;">
+                    <label style="font-size:12px;font-weight:800;letter-spacing:.5px;color:#0c1f45;margin-top:12px;">CONFIRM NEW PASSWORD</label>
                     <input id="tsaConfirmPassword" type="password" autocomplete="new-password" minlength="8" required
-                           style="padding:12px 14px;border:1px solid #cfe0d8;border-radius:10px;font:inherit;">
+                           style="padding:12px 14px;border:1px solid #d7deec;border-radius:10px;font:inherit;">
                     <p id="tsaPasswordStatus" style="min-height:20px;margin:12px 0 0;font-size:13px;"></p>
                     <button type="submit" id="tsaPasswordSave"
-                            style="margin-top:6px;padding:13px 18px;border:0;border-radius:10px;background:#0b3d2e;color:#fff;font-weight:700;cursor:pointer;">
+                            style="margin-top:6px;padding:13px 18px;border:0;border-radius:10px;background:#0c1f45;color:#fff;font-weight:700;cursor:pointer;">
                         Update Password
                     </button>
                 </form>
@@ -74,7 +74,7 @@
     function status(text, kind) {
         const el = overlay.querySelector("#tsaPasswordStatus");
         el.textContent = text || "";
-        el.style.color = kind === "error" ? "#b3261e" : kind === "ok" ? "#0b6b4f" : "#5b7268";
+        el.style.color = kind === "error" ? "#b3261e" : kind === "ok" ? "#1e3f94" : "#56637f";
     }
 
     async function submit(event) {
